@@ -1,5 +1,7 @@
 # SML# contrib
 ## 概要
+TBD
+
 ## 実装対象
 [Issue #1](https://github.com/bleis-tift/SmlSharpContrib/issues/1)
 
