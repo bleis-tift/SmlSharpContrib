@@ -1,0 +1,5 @@
+structure Std = struct
+  val id : 'a -> 'a
+  val version : (int * int * int)
+  val version_string : string
+end
