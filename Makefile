@@ -6,6 +6,7 @@ MODULES = \
 	ext/Std \
 	ext/Set \
 	ext/Queue \
+	ext/Stack \
 	parser/Parser
 
 # C files
@@ -20,6 +21,7 @@ TEST_MODULES = \
 	ext/StdTest \
 	ext/SetTest \
 	ext/QueueTest \
+	ext/StackTest \
 	parser/ParserTest
 
 TEST_TARGET = testRunner
