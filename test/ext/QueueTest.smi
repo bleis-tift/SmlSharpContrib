@@ -1,0 +1,8 @@
+_require "basis.smi"
+_require "smlunit-lib.smi"
+_require "ext/Queue.smi"
+
+structure QueueTest = struct
+  val suite : unit -> SMLUnit.Test.test
+end
+
