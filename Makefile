@@ -32,8 +32,9 @@ TARGET = example/hello
 #  Flags
 # ------------------------------------------------------------
 SMLSHARP = smlsharp
-SMLSHARP_CFLAGS = -O2 -I lib
-SMLSHARP_LDFLAGS = -I lib
+SMLSHARP_FLAGS = -I lib
+SMLSHARP_CFLAGS = -O2
+SMLSHARP_LDFLAGS =
 CFLAGS += -m32
 
 # ------------------------------------------------------------
@@ -58,10 +59,10 @@ example_objects := $(example_sources:.sml=.o)
 all: $(TARGET)
 
 $(TARGET): $(example_objects) $(objects) $(c_objects)
-	$(SMLSHARP) $(SMLSHARP_LDFLAGS) -o $@ example/$(EXAMPLE_MAIN).smi $(c_objects)
+	$(SMLSHARP) $(SMLSHARP_LDFLAGS) $(SMLSHARP_FLAGS) -o $@ example/$(EXAMPLE_MAIN).smi $(c_objects)
 
 $(TEST_TARGET): $(objects) $(c_objects) $(lib_objects) $(test_objects)
-	$(SMLSHARP) $(SMLSHARP_LDFLAGS) -o $@ test/Main.smi $(c_objects)
+	$(SMLSHARP) $(SMLSHARP_LDFLAGS) $(SMLSHARP_FLAGS) -o $@ test/Main.smi $(c_objects)
 
 check: $(TEST_TARGET)
 	./$(TEST_TARGET)
@@ -74,7 +75,7 @@ clean:
 #  Build rules
 # ------------------------------------------------------------
 %.o: %.sml
-	$(SMLSHARP) $(SMLSHARP_CFLAGS) -c -o $@ $<
+	$(SMLSHARP) $(SMLSHARP_CFLAGS) $(SMLSHARP_FLAGS) -c -o $@ $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) -c -o $@ $<
@@ -85,5 +86,5 @@ clean:
 .PHONY: depend
 
 depend:
-	$(SMLSHARP) -MM $(sources) $(test_sources) $(lib_sources) > .depend
+	$(SMLSHARP) $(SMLSHARP_FLAGS) -MM $(sources) $(test_sources) $(lib_sources) > .depend
 -include .depend
