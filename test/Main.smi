@@ -1,3 +1,4 @@
 _require "basis.smi"
 _require "smlunit-lib.smi"
 _require "./ext/StdTest.smi"
+_require "./parser/ParserTest.smi"
