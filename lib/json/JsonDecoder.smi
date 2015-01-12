@@ -1,0 +1,8 @@
+_require "basis.smi"
+_require "JsonValue.smi"
+_require "../parser/Parser.smi"
+
+structure JsonDecoder = struct
+  val decode : string -> JsonValue.t option
+end
+

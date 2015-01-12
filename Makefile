@@ -7,7 +7,10 @@ MODULES = \
 	ext/Set \
 	ext/Queue \
 	ext/Stack \
-	parser/Parser
+	parser/Parser \
+	json/JsonValue \
+	json/JsonDecoder \
+	json/Json
 
 # C files
 C_MODULES = \
@@ -22,7 +25,8 @@ TEST_MODULES = \
 	ext/SetTest \
 	ext/QueueTest \
 	ext/StackTest \
-	parser/ParserTest
+	parser/ParserTest \
+	json/JsonDecoderTest
 
 TEST_TARGET = testRunner
 
