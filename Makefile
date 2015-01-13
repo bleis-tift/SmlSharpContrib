@@ -3,7 +3,8 @@
 # ------------------------------------------------------------
 # SML files
 MODULES = \
-	ext/Std
+	ext/Std \
+	parser/Parser
 
 # C files
 C_MODULES = \
@@ -14,7 +15,8 @@ C_MODULES = \
 #  (TBD)
 TEST_MODULES = \
 	Main \
-	ext/StdTest
+	ext/StdTest \
+	parser/ParserTest
 
 TEST_TARGET = testRunner
 
