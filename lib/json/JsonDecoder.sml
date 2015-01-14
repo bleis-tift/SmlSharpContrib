@@ -5,7 +5,7 @@ structure JsonDecoder = struct
   fun number input =
     let
       fun str s = pstring s input
-      val positive = orElse (str "-") (fn pos => SOME("", pos))
+      val positive = orElse (str "-") (return "")
       fun digit1_9 pos =
         if String.size input <= pos then NONE
         else
@@ -147,7 +147,7 @@ structure JsonDecoder = struct
           mapPartial (fn xs =>
             map (fn _ => f xs) (ws (str pClose)))
             (orElse (elements (pElem ()))
-              (fn pos => SOME([], pos)))) (str pOpen)
+              (return []))) (str pOpen)
       fun jarray () =
         containerBetweenStrings "[" "]" jvalue
           (fn x => JsonArray(Array.fromList x))
@@ -169,7 +169,7 @@ structure JsonDecoder = struct
         (orElse (jarray ())
         (orElse jbool jnull))))
       val json =
-        ws (mapPartial (fn x => ws (fn pos => SOME(x, pos)))
+        ws (mapPartial (fn x => ws (return x))
           (orElse (jobject ()) (jarray ())))
     in
       case parse json input of

@@ -77,5 +77,7 @@ structure Parser = struct
   fun parse p input =
     Option.map (fn (r, pos) =>
       (r, String.extract (input, pos, NONE))) (p 0)
+
+  fun return x = fn pos => SOME(x, pos)
 end
 

@@ -14,5 +14,6 @@ structure Parser = struct
   val pstring : string -> string -> string t
   val any : string -> string t
   val parse : 'a t -> string -> ('a * string) option
+  val return : 'a -> 'a t
 end
 
