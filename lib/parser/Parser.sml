@@ -48,13 +48,13 @@ structure Parser = struct
   fun many1 p =
     map (fn (p1, p2) => p1::p2) (andThen p (many p))
 
-  fun not p =
+  fun bang p =
     fn pos =>
       case p pos of
         SOME _ => NONE
         | NONE => SOME((), pos)
 
-  fun pand p = not (not p)
+  fun amp p = bang (bang p)
 
   fun pstring s input =
     fn pos =>

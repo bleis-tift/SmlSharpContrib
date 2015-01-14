@@ -9,8 +9,8 @@ structure Parser = struct
   val opt : 'a t -> ('a option) t
   val many : 'a t -> ('a list) t
   val many1 : 'a t -> ('a list) t
-  val not : 'a t -> unit t
-  val pand : 'a t -> unit t
+  val bang : 'a t -> unit t
+  val amp: 'a t -> unit t
   val pstring : string -> string -> string t
   val any : string -> string t
   val parse : 'a t -> string -> ('a * string) option
