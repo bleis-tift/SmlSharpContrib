@@ -32,17 +32,12 @@ structure Parser = struct
 
   fun many p =
     let
-      fun parse pos =
+      fun parse acc pos =
         case p pos of
-          SOME(r, rpos1) =>
-            let
-              val (r2, rpos2) = parse rpos1
-            in
-              (r::r2, rpos2)
-            end
-          | NONE => ([], pos)
+          SOME(r, rpos1) => parse (r::acc) rpos1
+          | NONE => (List.rev acc, pos)
     in
-      fn pos => SOME(parse pos)
+      fn pos => SOME(parse [] pos)
     end
 
   fun many1 p =
