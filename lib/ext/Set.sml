@@ -16,10 +16,10 @@ struct
   
   val empty = LEAF
   
-  (** val is_empty : tree -> bool **)
+  (** val isEmpty : tree -> bool **)
   
-  fun is_empty LEAF = true
-    | is_empty (NODE _) = false
+  fun isEmpty LEAF = true
+    | isEmpty (NODE _) = false
   
   (** val mem : X.t -> tree -> bool **)
   
@@ -30,21 +30,21 @@ struct
         | LESS => mem x l
         | GREATER => mem x r
   
-  (** val min_elt : tree -> elt option **)
+  (** val minElt : tree -> elt option **)
   
-  fun min_elt LEAF = NONE
-    | min_elt (NODE (_, LEAF, x, _)) = SOME x
-    | min_elt (NODE (_, l as NODE _, x, _)) = min_elt l
+  fun minElt LEAF = NONE
+    | minElt (NODE (_, LEAF, x, _)) = SOME x
+    | minElt (NODE (_, l as NODE _, x, _)) = minElt l
   
-  (** val max_elt : tree -> elt option **)
+  (** val maxElt : tree -> elt option **)
   
-  fun max_elt LEAF = NONE
-    | max_elt (NODE (_, _, x, LEAF)) = SOME x
-    | max_elt (NODE (_, _, x, r as NODE _)) = max_elt r
+  fun maxElt LEAF = NONE
+    | maxElt (NODE (_, _, x, LEAF)) = SOME x
+    | maxElt (NODE (_, _, x, r as NODE _)) = maxElt r
   
   (** val choose : tree -> elt option **)
   
-  val choose = min_elt
+  val choose = minElt
   
   (** val fold : (elt * 'a1 -> 'a1) -> tree -> 'a1 -> 'a1 **)
   
@@ -52,36 +52,36 @@ struct
     | fold f (NODE (_, l, x, r)) base =
         fold f r (f (x, fold f l base))
   
-  (** val elements_aux : X.t list -> tree -> X.t list **)
+  (** val elementsAux : X.t list -> tree -> X.t list **)
   
-  fun elements_aux acc LEAF = acc
-    | elements_aux acc (NODE (_, l, x, r)) =
-        elements_aux (x :: elements_aux acc r) l
+  fun elementsAux acc LEAF = acc
+    | elementsAux acc (NODE (_, l, x, r)) =
+        elementsAux (x :: elementsAux acc r) l
   
   (** val elements : tree -> X.t list **)
   
-  val elements = elements_aux []
+  val elements = elementsAux []
   
-  (** val rev_elements_aux : X.t list -> tree -> X.t list **)
+  (** val revElementsAux : X.t list -> tree -> X.t list **)
   
-  fun rev_elements_aux acc LEAF = acc
-    | rev_elements_aux acc (NODE (_, l, x, r)) =
-        rev_elements_aux (x :: rev_elements_aux acc l) r
+  fun revElementsAux acc LEAF = acc
+    | revElementsAux acc (NODE (_, l, x, r)) =
+        revElementsAux (x :: revElementsAux acc l) r
   
-  (** val rev_elements : tree -> X.t list **)
+  (** val revElements : tree -> X.t list **)
   
-  val rev_elements = rev_elements_aux []
+  val revElements = revElementsAux []
   
   (** val cardinal : tree -> int **)
   
   fun cardinal LEAF = 0
     | cardinal (NODE (_, l, _, r)) = 1 + cardinal l + cardinal r
   
-  (** val for_all : (elt -> bool) -> tree -> bool **)
+  (** val forall : (elt -> bool) -> tree -> bool **)
   
-  fun for_all f LEAF = true
-    | for_all f (NODE (_, l, x, r)) =
-        f x andalso for_all f l andalso for_all f r
+  fun forall f LEAF = true
+    | forall f (NODE (_, l, x, r)) =
+        f x andalso forall f l andalso forall f r
   
   (** val exists : (elt -> bool) -> tree -> bool **)
   
@@ -99,31 +99,31 @@ struct
     | cons (NODE (_, l, x, r)) e =
         cons l (MORE (x, r, e))
   
-  (** val compare_more :
+  (** val compareMore :
       X.t -> (enumeration -> order) -> enumeration -> order **)
   
-  fun compare_more x1 cont END = GREATER
-    | compare_more x1 cont (MORE (x2, r2, e3)) =
+  fun compareMore x1 cont END = GREATER
+    | compareMore x1 cont (MORE (x2, r2, e3)) =
         case X.compare (x1, x2) of
           EQUAL => cont (cons r2 e3)
         | x => x
   
-  (** val compare_cont :
+  (** val compareCont :
       tree -> (enumeration -> order) -> enumeration -> order **)
   
-  fun compare_cont LEAF cont e2 = cont e2
-    | compare_cont (NODE (_, l1, x1, r1)) cont e2 =
-        compare_cont l1 (compare_more x1 (compare_cont r1 cont)) e2
+  fun compareCont LEAF cont e2 = cont e2
+    | compareCont (NODE (_, l1, x1, r1)) cont e2 =
+        compareCont l1 (compareMore x1 (compareCont r1 cont)) e2
   
-  (** val compare_end : enumeration -> order **)
+  (** val compareEnd : enumeration -> order **)
   
-  fun compare_end END = EQUAL
-    | compare_end (MORE _) = LESS
+  fun compareEnd END = EQUAL
+    | compareEnd (MORE _) = LESS
   
   (** val compare : tree * tree -> order **)
   
   fun compare (s1, s2) =
-    compare_cont s1 compare_end (cons s2 END)
+    compareCont s1 compareEnd (cons s2 END)
   
   (** val equal : tree * tree -> bool **)
   
@@ -226,24 +226,24 @@ struct
   fun join LEAF x = add x
     | join (l as NODE (lh, ll, lx, lr)) x =
         let
-          fun join_aux LEAF = add x l
-            | join_aux (r as NODE (rh, rl, rx, rr)) =
+          fun joinAux LEAF = add x l
+            | joinAux (r as NODE (rh, rl, rx, rr)) =
                 if lh > rh + 2 then
                   bal ll lx (join lr x r)
                 else if rh > lh + 2 then
-                  bal (join_aux rl) rx rr
+                  bal (joinAux rl) rx rr
                 else
                   create l x r
         in
-          join_aux
+          joinAux
         end
   
-  (** val remove_min : tree -> elt -> t -> t * elt **)
+  (** val removeMin : tree -> elt -> t -> t * elt **)
   
-  fun remove_min LEAF x r = (r, x)
-    | remove_min (NODE (_, ll, lx, lr)) x r =
+  fun removeMin LEAF x r = (r, x)
+    | removeMin (NODE (_, ll, lx, lr)) x r =
         let
-          val (l', m) = remove_min ll lx lr
+          val (l', m) = removeMin ll lx lr
         in
           (bal l' x r, m)
         end
@@ -254,7 +254,7 @@ struct
     | merge (s1, LEAF) = s1
     | merge (s1 as NODE _, NODE (_, l2, x2, r2)) =
         let
-          val (s2', m) = remove_min l2 x2 r2
+          val (s2', m) = removeMin l2 x2 r2
         in
           bal s1 m s2'
         end
@@ -274,24 +274,24 @@ struct
     | concat (s1, LEAF) = s1
     | concat (s1, NODE (_, l2, x2, r2)) =
         let
-          val (s2', m) = remove_min l2 x2 r2
+          val (s2', m) = removeMin l2 x2 r2
         in
           join s1 m s2'
         end
 
-  (** val split : X.t -> tree -> { left : t, in : bool, right : t } **)
+  (** val split : X.t -> tree -> { less : t, present : bool, greater : t } **)
   
-  fun split x LEAF = { left = LEAF, in_ = false, right = LEAF }
+  fun split x LEAF = { less = LEAF, present = false, greater = LEAF }
     | split x (NODE (_, l, y, r)) =
         case X.compare (x, y) of
-          EQUAL => { left = l, in_ = true, right = r }
+          EQUAL => { less = l, present = true, greater = r }
         | LESS =>
-            let val { left = ll, in_ = b, right = rl } = split x l in
-              { left = ll, in_ = b, right = (join rl y r) }
+            let val { less = ll, present = b, greater = rl } = split x l in
+              { less = ll, present = b, greater = (join rl y r) }
             end
         | GREATER =>
-            let val { left = rl, in_ = b, right = rr } = split x r in
-              { left = (join l y rl), in_ = b, right = rr }
+            let val { less = rl, present = b, greater = rr } = split x r in
+              { less = (join l y rl), present = b, greater = rr }
             end
   
   (** val inter : tree * tree -> tree **)
@@ -300,7 +300,7 @@ struct
     | inter (s1, LEAF) = LEAF
     | inter (NODE (_, l1, x1, r1), s2 as NODE _) =
         let
-          val { left = l2', in_ = pres, right = r2' } = split x1 s2
+          val { less = l2', present = pres, greater = r2' } = split x1 s2
         in
           if pres then
             join (inter (l1, l2')) x1 (inter (r1, r2'))
@@ -314,7 +314,7 @@ struct
     | diff (s1, LEAF) = s1
     | diff (NODE (_, l1, x1, r1), s2 as NODE _) =
         let
-          val { left = l2', in_ = pres, right = r2' } = split x1 s2
+          val { less = l2', present = pres, greater = r2' } = split x1 s2
         in
           if pres then
             concat (diff (l1, l2'), diff (r1, r2'))
@@ -328,7 +328,7 @@ struct
     | union (s1, LEAF) = s1
     | union (NODE (_, l1, x1, r1), s2 as NODE _) =
         let
-          val { left = l2', in_ = x, right = r2' } = split x1 s2
+          val { less = l2', present = x, greater = r2' } = split x1 s2
         in
           join (union (l1, l2')) x1 (union (r1, r2'))
         end
@@ -344,17 +344,17 @@ struct
            if f x then join l' x r' else concat (l', r')
          end
   
-  (** val partition : (elt -> bool) -> t -> t * t **)
+  (** val partition : (elt -> bool) -> t -> { satisfy : t, dissatisfy : t } **)
   
-  fun partition f LEAF = (LEAF, LEAF)
+  fun partition f LEAF = { satisfy = LEAF, dissatisfy = LEAF }
     | partition f (NODE (_, l, x, r)) =
         let
-          val (l1, l2) = partition f l
-          val (r1, r2) = partition f r
+          val { satisfy = l1, dissatisfy = l2 } = partition f l
+          val { satisfy = r1, dissatisfy = r2 } = partition f r
         in
           if f x then
-            (join l1 x r1, concat (l2, r2))
+            { satisfy = join l1 x r1, dissatisfy = concat (l2, r2) }
           else
-            (concat (l1, r1), join l2 x r2)
+            { satisfy = concat (l1, r1), dissatisfy = join l2 x r2 }
         end
 end

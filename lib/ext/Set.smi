@@ -12,16 +12,16 @@ struct
   type t (= boxed)
   
   val empty : t
-  val is_empty : t -> bool
+  val isEmpty : t -> bool
   val mem : X.t -> t -> bool
-  val min_elt : t -> elt option
-  val max_elt : t -> elt option
+  val minElt : t -> elt option
+  val maxElt : t -> elt option
   val choose : t -> elt option
   val fold : (elt * 'a -> 'a) -> t -> 'a -> 'a
   val elements : t -> X.t list
-  val rev_elements : t -> X.t list
+  val revElements : t -> X.t list
   val cardinal : t -> int
-  val for_all : (elt -> bool) -> t -> bool
+  val forall : (elt -> bool) -> t -> bool
   val exists : (elt -> bool) -> t -> bool
   val compare : t * t -> order
   val equal : t * t -> bool
@@ -29,10 +29,10 @@ struct
   val singleton : X.t -> t
   val add : X.t -> t -> t
   val remove : X.t -> t -> t
-  val split : X.t -> t -> {in_:bool, left:t, right:t}
+  val split : X.t -> t -> { present : bool, less : t, greater : t }
   val inter : t * t -> t
   val diff : t * t -> t
   val union : t * t -> t
   val filter : (elt -> bool) -> t -> t
-  val partition : (elt -> bool) -> t -> t * t
+  val partition : (elt -> bool) -> t -> { satisfy : t, dissatisfy : t }
 end

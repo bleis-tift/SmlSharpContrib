@@ -13,46 +13,46 @@ struct
 
   structure IntSet = Set (OrderedInt)
 
-  val iset_of_list = foldl (fn (n, s) => IntSet.add n s) IntSet.empty
+  val isetFromList = foldl (fn (n, s) => IntSet.add n s) IntSet.empty
   fun assertEqualIntSet s1 s2 =
     Assert.assertTrue
       (IntSet.equal (s1, s2))
 
-  fun is_empty_empty_test () =
-    Assert.assertTrue (IntSet.is_empty IntSet.empty)
+  fun isEmptyEmptyTest () =
+    Assert.assertTrue (IntSet.isEmpty IntSet.empty)
 
-  fun is_empty_singleton_test () =
-    Assert.assertFalse (IntSet.is_empty (IntSet.singleton 42))
+  fun isEmptySingletonTest () =
+    Assert.assertFalse (IntSet.isEmpty (IntSet.singleton 42))
 
-  fun mem_true_test () = 
+  fun mem_trueTest () = 
     Assert.assertTrue
-      (IntSet.mem 810 (iset_of_list [33, ~4, 114, 514, 810]))
+      (IntSet.mem 810 (isetFromList [33, ~4, 114, 514, 810]))
 
-  fun mem_false_test () =
+  fun mem_falseTest () =
     Assert.assertFalse
-      (IntSet.mem 42 (iset_of_list [33, ~4, 114, 514, 810]))
+      (IntSet.mem 42 (isetFromList [33, ~4, 114, 514, 810]))
 
-  fun min_elt_empty_test () =
+  fun minEltEmptyTest () =
     Assert.assertNone
-      (IntSet.min_elt IntSet.empty)
+      (IntSet.minElt IntSet.empty)
 
-  fun min_elt_not_empty_test () =
+  fun minEltNotEmptyTest () =
     Assert.assertEqualIntOption
       (SOME ~4)
-      (IntSet.min_elt (iset_of_list [33, ~4, 114, 514, 810]))
+      (IntSet.minElt (isetFromList [33, ~4, 114, 514, 810]))
 
-  fun max_elt_empty_test () =
+  fun maxEltEmptyTest () =
     Assert.assertNone
-      (IntSet.max_elt IntSet.empty)
+      (IntSet.maxElt IntSet.empty)
 
-  fun max_elt_not_empty_test () =
+  fun maxEltNotEmptyTest () =
     Assert.assertEqualIntOption
       (SOME 810)
-      (IntSet.max_elt (iset_of_list [33, ~4, 114, 514, 810]))
+      (IntSet.maxElt (isetFromList [33, ~4, 114, 514, 810]))
 
-  fun fold_elements_test () =
+  fun foldElementsTest () =
     let 
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       Assert.assertEqualList
         Assert.AssertInt.assertEqualInt
@@ -60,169 +60,169 @@ struct
         (rev (IntSet.fold op:: s []))
     end
 
-  fun rev_elements_test () =
+  fun revElementsTest () =
     let 
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       Assert.assertEqualList
         Assert.AssertInt.assertEqualInt
         (rev (IntSet.elements s))
-        (IntSet.rev_elements s)
+        (IntSet.revElements s)
     end
     
-  fun cardinal_empty_test () =
+  fun cardinalEmptyTest () =
     Assert.AssertInt.assertEqualInt
       0
       (IntSet.cardinal IntSet.empty)
 
-  fun cardinal_5elements_test () =
+  fun cardinal5ElementsTest () =
     Assert.AssertInt.assertEqualInt
       5
-      (IntSet.cardinal (iset_of_list [33, ~4, 114, 514, 810]))
+      (IntSet.cardinal (isetFromList [33, ~4, 114, 514, 810]))
 
-  fun for_all_fold_test () =
+  fun forallFoldTest () =
     let
       fun p n = n mod 2 = 0
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       Assert.assertEqualBool
-        (IntSet.for_all p s)
+        (IntSet.forall p s)
         (IntSet.fold (fn (n, b) => p n andalso b) s true)
     end
 
-  fun exists_fold_test () =
+  fun existsFoldTest () =
     let
       fun p n = n mod 2 = 1
-      val s = iset_of_list [114, 514, 810]
+      val s = isetFromList [114, 514, 810]
     in
       Assert.assertEqualBool
         (IntSet.exists p s)
         (IntSet.fold (fn (n, b) => p n orelse b) s false)
     end
 
-  fun equal_test () =
+  fun equalTest () =
     Assert.assertTrue
       (IntSet.equal
-        (iset_of_list [3, 1, 4], iset_of_list [1, 4, 3]))
+        (isetFromList [3, 1, 4], isetFromList [1, 4, 3]))
 
-  fun subset_test () =
+  fun subsetTest () =
     Assert.assertTrue
       (IntSet.subset
-        (iset_of_list [2, 7], iset_of_list [2, 7, 1, 8]))
+        (isetFromList [2, 7], isetFromList [2, 7, 1, 8]))
 
-  fun remove_test () =
+  fun removeTest () =
     assertEqualIntSet
       (IntSet.remove 1
         (IntSet.remove 4
-          (iset_of_list [3, 1, 4])))
+          (isetFromList [3, 1, 4])))
       (IntSet.singleton 3)
 
-  fun split_mem_found_test () =
+  fun splitMemFoundTest () =
     let 
       val n = 810
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       Assert.assertEqualBool
         (IntSet.mem n s)
-        (#in_ (IntSet.split n s))
+        (#present (IntSet.split n s))
     end
 
-  fun split_mem_not_found_test () =
+  fun splitMemNotFoundTest () =
     let 
       val n = 42
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       Assert.assertEqualBool
         (IntSet.mem n s)
-        (#in_ (IntSet.split n s))
+        (#present (IntSet.split n s))
     end
 
-  fun split_filter_left_test () =
+  fun splitFilterLessTest () =
     let
       val n = 810
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
       fun p m = m < n
     in
       assertEqualIntSet
         (IntSet.filter p s)
-        (#left (IntSet.split n s))
+        (#less (IntSet.split n s))
     end
 
-  fun split_filter_right_test () =
+  fun splitFilterGreaterTest () =
     let
       val n = 810
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
       fun p m = m > n
     in
       assertEqualIntSet
         (IntSet.filter p s)
-        (#right (IntSet.split n s))
+        (#greater (IntSet.split n s))
     end
 
-  fun inter_test () =
+  fun interTest () =
     assertEqualIntSet
       (IntSet.inter
-        (iset_of_list [3, 1, 4], iset_of_list [2, 7, 1]))
-      (iset_of_list [1])
+        (isetFromList [3, 1, 4], isetFromList [2, 7, 1]))
+      (isetFromList [1])
 
-  fun diff_test () =
+  fun diffTest () =
     assertEqualIntSet
       (IntSet.diff
-        (iset_of_list [3, 1, 4, 1, 5, 9, 2], iset_of_list [2, 7, 1]))
-      (iset_of_list [3, 4, 5, 9])
+        (isetFromList [3, 1, 4, 1, 5, 9, 2], isetFromList [2, 7, 1]))
+      (isetFromList [3, 4, 5, 9])
 
-  fun union_test () =
+  fun unionTest () =
     assertEqualIntSet
       (IntSet.union
-        (iset_of_list [3, 1, 4], iset_of_list [2, 7, 1]))
-      (iset_of_list [3, 1, 4, 2, 7])
+        (isetFromList [3, 1, 4], isetFromList [2, 7, 1]))
+      (isetFromList [3, 1, 4, 2, 7])
 
-  fun partition_left_test () =
+  fun partitionSatisfyTest () =
     let
       fun p n = n mod 2 = 0
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       assertEqualIntSet
         (IntSet.filter p s)
-        (#1 (IntSet.partition p s))
+        (#satisfy (IntSet.partition p s))
     end
   
-  fun partition_right_test () =
+  fun partitionDissatisfyTest () =
     let
       fun p n = n mod 2 = 0
-      val s = iset_of_list [33, ~4, 114, 514, 810]
+      val s = isetFromList [33, ~4, 114, 514, 810]
     in
       assertEqualIntSet
         (IntSet.filter (not o p) s)
-        (#2 (IntSet.partition p s))
+        (#dissatisfy (IntSet.partition p s))
     end
 
   fun suite () = Test.labelTests [
-    ("is_empty empty test", is_empty_empty_test),
-    ("is_empty singleton test", is_empty_singleton_test),
-    ("mem found test", mem_true_test),
-    ("mem not found test", mem_false_test),
-    ("min_elt empty test", min_elt_empty_test),
-    ("min_elt not empty test", min_elt_not_empty_test),
-    ("max_elt empty test", max_elt_empty_test),
-    ("max_elt not_empty test", max_elt_not_empty_test),
-    ("fold elements test", fold_elements_test),
-    ("rev_elements test", rev_elements_test),
-    ("cardinal empty test", cardinal_empty_test),
-    ("cardinal 5 elements test", cardinal_5elements_test),
-    ("for_all fold test", for_all_fold_test),
-    ("exists fold test", exists_fold_test),
-    ("equal test", equal_test),
-    ("subset test", subset_test),
-    ("remove test", remove_test),
-    ("split mem found test", split_mem_found_test),
-    ("split mem not found test", split_mem_not_found_test),
-    ("split filter left test", split_filter_left_test),
-    ("split filter right test", split_filter_right_test),
-    ("inter test", inter_test),
-    ("diff test", diff_test),
-    ("union test", union_test),
-    ("partition left test", partition_left_test),
-    ("partition right test", partition_right_test)
+    ("isEmpty empty test", isEmptyEmptyTest),
+    ("isEmpty singleton test", isEmptySingletonTest),
+    ("mem found test", mem_trueTest),
+    ("mem not found test", mem_falseTest),
+    ("minElt empty test", minEltEmptyTest),
+    ("minElt not empty test", minEltNotEmptyTest),
+    ("maxElt empty test", maxEltEmptyTest),
+    ("maxElt not empty test", maxEltNotEmptyTest),
+    ("fold elements test", foldElementsTest),
+    ("revElements test", revElementsTest),
+    ("cardinal empty test", cardinalEmptyTest),
+    ("cardinal 5 elements test", cardinal5ElementsTest),
+    ("forall fold test", forallFoldTest),
+    ("exists fold test", existsFoldTest),
+    ("equal test", equalTest),
+    ("subset test", subsetTest),
+    ("remove test", removeTest),
+    ("split mem found test", splitMemFoundTest),
+    ("split mem not found test", splitMemNotFoundTest),
+    ("split filter less test", splitFilterLessTest),
+    ("split filter greater test", splitFilterGreaterTest),
+    ("inter test", interTest),
+    ("diff test", diffTest),
+    ("union test", unionTest),
+    ("partition left test", partitionSatisfyTest),
+    ("partition right test", partitionDissatisfyTest)
   ]
 end
