@@ -4,7 +4,7 @@ structure JsonValue = struct
     | JsonBool of bool
     | JsonNumber of real
     | JsonString of string
-    | JsonArray of t array
+    | JsonArray of t list
     | JsonObject of (string * t) list
   fun equal (JsonNull, JsonNull) = true
     | equal (JsonBool l, JsonBool r) = l = r
@@ -15,10 +15,10 @@ structure JsonValue = struct
         | _ => false)
     | equal (JsonString l, JsonString r) = l = r
     | equal (JsonArray l, JsonArray r) =
-      if (Array.length l) <> (Array.length r) then false
+      if (List.length l) <> (List.length r) then false
       else
-        Array.foldli (fn (i, lv, b) =>
-          b andalso equal (lv, Array.sub (r, i))) true l
+        #2 (List.foldl (fn (lv, (i, b)) =>
+          (i + 1, b andalso equal (lv, List.nth (r, i)))) (0, true) l)
     | equal (JsonObject l, JsonObject r) =
       if (List.length l) <> (List.length r) then false
       else

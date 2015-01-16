@@ -38,7 +38,7 @@ structure JsonDecoderTest = struct
 
   fun empty_array_test () =
     let
-      val expected = JsonArray (Array.fromList [])
+      val expected = JsonArray []
       val actual = decode "[]"
     in
       assertDecode expected actual
@@ -46,10 +46,10 @@ structure JsonDecoderTest = struct
 
   fun bool_test () =
     let
-      val expected = JsonArray (Array.fromList [
+      val expected = JsonArray [
         JsonBool true,
         JsonBool false
-      ])
+      ]
       val actual = decode "[true, false]"
     in
       assertDecode expected actual
@@ -57,13 +57,13 @@ structure JsonDecoderTest = struct
 
   fun int_test () =
     let
-      val expected = JsonArray (Array.fromList [
+      val expected = JsonArray [
         JsonNumber 0.0,
         JsonNumber 1.0,
         JsonNumber 10.0,
         JsonNumber ~1.0,
         JsonNumber ~10.0
-      ])
+      ]
       val actual = decode "[ 0, 1, 10, -1, -10 ]"
     in
       assertDecode expected actual
@@ -71,12 +71,12 @@ structure JsonDecoderTest = struct
 
   fun real_test () =
     let
-      val expected = JsonArray (Array.fromList [
+      val expected = JsonArray [
         JsonNumber 0.0,
         JsonNumber 1.0,
         JsonNumber 1.01,
         JsonNumber ~0.2
-      ])
+      ]
       val actual = decode "[ 0.0, 1., 1.01, -0.2 ]"
     in
       assertDecode expected actual
@@ -84,7 +84,7 @@ structure JsonDecoderTest = struct
 
   fun exp_num_test () =
     let
-      val expected = JsonArray (Array.fromList [
+      val expected = JsonArray [
         JsonNumber 0.0,
         JsonNumber 1.0,
         JsonNumber 1.0,
@@ -95,7 +95,7 @@ structure JsonDecoderTest = struct
         JsonNumber 1.0,
         JsonNumber 10.0,
         JsonNumber 0.1
-      ])
+      ]
       val actual = decode "[ 0E, 1E+, 1E-, 1E+1, 1E-1, 0e, 1e+, 1e-, 1e+1, 1e-1 ]"
     in
       assertDecode expected actual
@@ -103,12 +103,12 @@ structure JsonDecoderTest = struct
 
   fun frac_exp_test () =
     let
-      val expected = JsonArray (Array.fromList [
+      val expected = JsonArray [
         JsonNumber 0.0,
         JsonNumber 0.0,
         JsonNumber 1.0,
         JsonNumber 0.2
-      ])
+      ]
       val actual = decode "[ 0.0E, 0.0e, 0.1E+1, 2.0e-1 ]"
     in
       assertDecode expected actual
@@ -116,10 +116,10 @@ structure JsonDecoderTest = struct
 
   fun string_test () =
     let
-      val expected = JsonArray (Array.fromList [
+      val expected = JsonArray [
         JsonString "",
         JsonString "a"
-      ])
+      ]
       val actual = decode "[ \"\", \"a\" ]"
     in
       assertDecode expected actual
@@ -127,10 +127,10 @@ structure JsonDecoderTest = struct
 
   fun nested_array_test () =
     let
-      val expected = JsonArray (Array.fromList [
-        JsonArray (Array.fromList []),
-        JsonArray (Array.fromList [ JsonString "a" ])
-      ])
+      val expected = JsonArray [
+        JsonArray [],
+        JsonArray [ JsonString "a" ]
+      ]
       val actual = decode "[ [], [\"a\"] ]"
     in
       assertDecode expected actual

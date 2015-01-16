@@ -148,9 +148,7 @@ structure JsonDecoder = struct
             map (fn _ => f xs) (ws (str pClose)))
             (orElse (elements (pElem ()))
               (return []))) (str pOpen)
-      fun jarray () =
-        containerBetweenStrings "[" "]" jvalue
-          (fn x => JsonArray(Array.fromList x))
+      fun jarray () = containerBetweenStrings "[" "]" jvalue JsonArray
       and
         pair () =
         ws (mapPartial (fn k =>
@@ -158,9 +156,7 @@ structure JsonDecoder = struct
             ws (map (fn v => (k, v)) (jvalue ())))
               (str ":"))) (jstr input))
       and
-        jobject () =
-        containerBetweenStrings "{" "}" pair
-          (fn x => JsonObject x)
+        jobject () = containerBetweenStrings "{" "}" pair JsonObject
       and
         jvalue () =
         orElse jstring
