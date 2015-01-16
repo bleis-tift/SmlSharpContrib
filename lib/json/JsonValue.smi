@@ -8,5 +8,6 @@ structure JsonValue = struct
     | JsonString of string
     | JsonArray of t array
     | JsonObject of (string * t) list
+  val equal : t * t -> bool
 end
 
