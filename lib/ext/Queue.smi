@@ -1,0 +1,18 @@
+_require "basis.smi"
+
+structure Queue = struct
+  type 'a t (= boxed)
+  exception Empty
+  val empty : 'a t
+  val isEmpty : 'a t -> bool
+  val size : 'a t -> int
+  val enqueue : 'a t * 'a -> 'a t
+  val peekExn : 'a t -> 'a
+  val peek : 'a t -> 'a option
+  val dequeueExn : 'a t -> 'a * 'a t
+  val dequeue : 'a t -> ('a * 'a t) option
+  val map : ('a -> 'b) -> 'a t -> 'b t
+  val app : ('a -> unit) -> 'a t -> unit
+  val fold : ('a * 'b -> 'b) -> 'b -> 'a t -> 'b
+end
+
