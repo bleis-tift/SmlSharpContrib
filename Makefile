@@ -4,6 +4,7 @@
 # SML files
 MODULES = \
 	ext/Std \
+	ext/Set \
 	parser/Parser
 
 # C files
@@ -16,6 +17,7 @@ C_MODULES = \
 TEST_MODULES = \
 	Main \
 	ext/StdTest \
+	ext/SetTest \
 	parser/ParserTest
 
 TEST_TARGET = testRunner
