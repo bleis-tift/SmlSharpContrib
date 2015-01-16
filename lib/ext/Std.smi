@@ -1,5 +1,13 @@
+infixr 0 $
+
 structure Std = struct
   val id : 'a -> 'a
+  val $ : (('a -> 'b) * 'a) -> 'b
+  val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
+  val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c
+  val uncurry : ('a -> 'b -> 'c) -> 'a * 'b -> 'c
+  val const : 'a -> 'b -> 'a
+
   val version : (int * int * int)
   val version_string : string
 end
