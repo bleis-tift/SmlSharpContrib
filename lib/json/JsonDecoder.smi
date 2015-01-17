@@ -1,4 +1,5 @@
 _require "basis.smi"
+_require "../ext/Std.smi"
 _require "JsonValue.smi"
 _require "../parser/Parser.smi"
 

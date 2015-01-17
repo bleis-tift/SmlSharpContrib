@@ -1,4 +1,5 @@
 structure JsonDecoder = struct
+  open Std
   open Parser
   open JsonValue
 
@@ -50,10 +51,12 @@ structure JsonDecoder = struct
       val pnum =
         map (op ^)
           (andThen pint
-            (orElse fracExp
-            (orElse frac
-            (orElse exp
-            (fn pos => SOME("", pos))))))
+            (choice [
+              fracExp,
+              frac,
+              exp,
+              fn pos => SOME("", pos)
+            ]))
     in
       mapPartial (fn n =>
         fn pos =>
@@ -82,11 +85,11 @@ structure JsonDecoder = struct
         orElse (str "\\\"")
         (orElse (str "\\\\")
         (orElse (str "\\/")
-        (orElse (map (fn _ => "\b") (str "\\b"))
-        (orElse (map (fn _ => "\f") (str "\\f"))
-        (orElse (map (fn _ => "\n") (str "\\n"))
-        (orElse (map (fn _ => "\r") (str "\\r"))
-        (orElse (map (fn _ => "\t") (str "\\t"))
+        (orElse (map (const "\b") (str "\\b"))
+        (orElse (map (const "\f") (str "\\f"))
+        (orElse (map (const "\n") (str "\\n"))
+        (orElse (map (const "\r") (str "\\r"))
+        (orElse (map (const "\t") (str "\\t"))
         (map (fn (u, (h1, (h2, (h3, h4)))) => u ^ h1 ^ h2 ^ h3 ^ h4)
           (andThen (str "u")
             (andThen hex
@@ -109,7 +112,7 @@ structure JsonDecoder = struct
       val jstring =
         mapPartial (fn _ =>
           mapPartial (fn x =>
-            map (fn _ => x) (str "\"")) internalString) (str "\"")
+            map (const x) (str "\"")) internalString) (str "\"")
     in
       jstring
     end
@@ -131,21 +134,18 @@ structure JsonDecoder = struct
               | NONE => NONE
           end
       val spaces = many space
-      fun ws p = mapPartial (fn _ => p) spaces
-      val jnull = map (fn _ => JsonNull) (str "null")
-      val jfalse = map (fn _ => JsonBool false) (str "false")
-      val jtrue = map (fn _ => JsonBool true) (str "true")
+      fun ws p = mapPartial (const p) spaces
+      val jnull = map (const JsonNull) (str "null")
+      val jfalse = map (const (JsonBool false)) (str "false")
+      val jtrue = map (const (JsonBool true)) (str "true")
       val jbool = orElse jtrue jfalse
       val jnumber = number input
       val jstring = map JsonString (jstr input)
-      fun elements p =
-        map (fn (x, xs) => x::xs)
-          (andThen (ws p)
-            (many (ws (mapPartial (fn _ => ws p) (str ",")))))
+      fun elements p = sepBy1 (ws p) (ws (str ","))
       fun containerBetweenStrings pOpen pClose pElem f =
         mapPartial (fn _ =>
           mapPartial (fn xs =>
-            map (fn _ => f xs) (ws (str pClose)))
+            map (const (f xs)) (ws (str pClose)))
             (orElse (elements (pElem ()))
               (return []))) (str pOpen)
       fun jarray () = containerBetweenStrings "[" "]" jvalue JsonArray
@@ -158,12 +158,14 @@ structure JsonDecoder = struct
       and
         jobject () = containerBetweenStrings "{" "}" pair JsonObject
       and
-        jvalue () =
-        orElse jstring
-        (orElse jnumber
-        (orElse (jobject ())
-        (orElse (jarray ())
-        (orElse jbool jnull))))
+        jvalue () = choice [
+          jstring,
+          jnumber,
+          jobject (),
+          jarray (),
+          jbool,
+          jnull
+        ]
       val json =
         ws (mapPartial (fn x => ws (return x))
           (orElse (jobject ()) (jarray ())))

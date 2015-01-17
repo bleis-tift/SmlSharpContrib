@@ -1,4 +1,5 @@
 _require "basis.smi"
+_require "../ext/Std.smi"
 
 structure Parser = struct
   type 'a t = int -> ('a * int) option
@@ -15,5 +16,9 @@ structure Parser = struct
   val any : string -> string t
   val parse : 'a t -> string -> ('a * string) option
   val return : 'a -> 'a t
+  val fail : 'a t
+  val choice : ('a t) list -> 'a t
+  val sepBy1 : 'a t -> 'b t -> ('a list) t
+  val sepBy : 'a t -> 'b t -> ('a list) t
 end
 

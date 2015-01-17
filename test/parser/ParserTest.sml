@@ -98,6 +98,14 @@ structure ParserTest = struct
       testParseString2Tuple input p ("a", "b")
     end
 
+  fun sepBy1_test () =
+    let
+      val input = "ab,ab,ab"
+      val p = sepBy1 (pstring "ab" input) (pstring "," input)
+    in
+      testParseStringList input p ["ab","ab","ab"]
+    end
+
   fun suite _ = Test.labelTests [
     ("any test", any_test),
     ("pstring test", pstring_test),
@@ -106,7 +114,8 @@ structure ParserTest = struct
     ("many test", many_test),
     ("many1 fail test", many1_fail_test),
     ("many1 test", many1_test),
-    ("andThen test", andThen_test)
+    ("andThen test", andThen_test),
+    ("sepBy1 test", sepBy1_test)
   ]
 end
 
