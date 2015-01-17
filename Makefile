@@ -21,6 +21,7 @@ TEST_MODULES = \
 	Main \
 	ext/StdTest \
 	ext/SetTest \
+	ext/MapTest \
 	ext/QueueTest \
 	ext/StackTest \
 	parser/ParserTest
