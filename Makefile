@@ -5,6 +5,7 @@
 MODULES = \
 	ext/Std \
 	ext/Set \
+	ext/Map \
 	ext/Queue \
 	ext/Stack \
 	parser/Parser
