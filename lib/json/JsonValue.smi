@@ -1,0 +1,13 @@
+_require "basis.smi"
+
+structure JsonValue = struct
+  datatype t =
+    JsonNull
+    | JsonBool of bool
+    | JsonNumber of real
+    | JsonString of string
+    | JsonArray of t list
+    | JsonObject of (string * t) list
+  val equal : t * t -> bool
+end
+

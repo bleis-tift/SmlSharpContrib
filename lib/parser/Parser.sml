@@ -1,5 +1,7 @@
 structure Parser = struct
 
+  open Std
+
   type 'a t = int -> ('a * int) option
 
   fun orElse a b =
@@ -77,5 +79,16 @@ structure Parser = struct
   fun parse p input =
     Option.map (fn (r, pos) =>
       (r, String.extract (input, pos, NONE))) (p 0)
+
+  fun return x = fn pos => SOME(x, pos)
+
+  fun fail pos = NONE
+
+  fun choice xs = List.foldl (fn (a, b) => orElse b a) fail xs
+
+  fun sepBy1 p s =
+    map (op ::) (andThen p (many (mapPartial (const p) s)))
+
+  fun sepBy p s = orElse (sepBy1 p s) (return [])
 end
 
