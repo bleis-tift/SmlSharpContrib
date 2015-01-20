@@ -2,44 +2,20 @@
 #  configure for lib/
 # ------------------------------------------------------------
 # SML files
-MODULES = \
-	ext/Std \
-	ext/Set \
-	ext/Map \
-	ext/Queue \
-	ext/Stack \
-	parser/Parser \
-	json/JsonValue \
-	json/JsonDecoder \
-	json/Json
-
-# C files
-C_MODULES = \
+MODULES = $(wildcard lib/*/*.sml)
+C_MODULES = $(wildcard lib/*/*.c)
 
 # ------------------------------------------------------------
 #  configure for test
 # ------------------------------------------------------------
-#  (TBD)
-TEST_MODULES = \
-	Main \
-	ext/StdTest \
-	ext/SetTest \
-	ext/MapTest \
-	ext/QueueTest \
-	ext/StackTest \
-	parser/ParserTest \
-	json/JsonDecoderTest
-
+TEST_MODULES = $(wildcard test/*/*.sml) test/Main.sml
 TEST_TARGET = testRunner
 
 # ------------------------------------------------------------
 #  configure for test
 # ------------------------------------------------------------
-EXAMPLE_MODULES = \
-	hello
-
+EXAMPLE_MODULES = $(wildcard example/*.sml)
 EXAMPLE_MAIN = hello
-
 TARGET = example/hello
 
 # ------------------------------------------------------------
@@ -54,16 +30,16 @@ CFLAGS += -m32
 # ------------------------------------------------------------
 #  prepare variables
 # ------------------------------------------------------------
-sources := $(addprefix lib/,$(MODULES:=.sml))
+sources := $(MODULES)
 objects := $(sources:.sml=.o)
 
-c_sources = $(addprefix lib/,$(C_MODULES:=.c))
+c_sources = $(C_MODULES)
 c_objects := $(c_sources:.c=.o)
 
-test_sources := $(addprefix test/, $(TEST_MODULES:=.sml))
+test_sources := $(TEST_MODULES)
 test_objects := $(test_sources:.sml=.o)
 
-example_sources := $(addprefix example/, $(EXAMPLE_MODULES:=.sml))
+example_sources := $(EXAMPLE_MODULES)
 example_objects := $(example_sources:.sml=.o)
 
 # ------------------------------------------------------------
