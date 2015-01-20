@@ -5,6 +5,7 @@
 MODULES = \
 	ext/Std \
 	ext/Set \
+	ext/Map \
 	ext/Queue \
 	ext/Stack \
 	parser/Parser
@@ -20,6 +21,7 @@ TEST_MODULES = \
 	Main \
 	ext/StdTest \
 	ext/SetTest \
+	ext/MapTest \
 	ext/QueueTest \
 	ext/StackTest \
 	parser/ParserTest
