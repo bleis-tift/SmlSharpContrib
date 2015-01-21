@@ -1,4 +1,6 @@
 # SML# contrib
+[![wercker status](https://app.wercker.com/status/8577ef8c41de69d1457c588dd15d5229/m "wercker status")](https://app.wercker.com/project/bykey/8577ef8c41de69d1457c588dd15d5229)
+
 ## 概要
 TBD
 
