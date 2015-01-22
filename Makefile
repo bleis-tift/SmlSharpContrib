@@ -2,7 +2,7 @@
 #  configure for lib/
 # ------------------------------------------------------------
 # SML files
-MODULES = $(wildcard lib/*/*.sml)
+MODULES = $(wildcard lib/*/*/*.sml) $(wildcard lib/*/*.sml)
 C_MODULES = $(wildcard lib/*/*.c)
 
 # ------------------------------------------------------------
