@@ -1,3 +1,6 @@
+_require "basis.smi"
+_require "ffi.smi"
+
 infixr 0 $
 
 structure Std = struct
@@ -7,6 +10,8 @@ structure Std = struct
   val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c
   val uncurry : ('a -> 'b -> 'c) -> 'a * 'b -> 'c
   val const : 'a -> 'b -> 'a
+
+  val dump : 'a -> unit
 
   val version : (int * int * int)
   val version_string : string

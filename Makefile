@@ -25,7 +25,7 @@ SMLSHARP = smlsharp
 SMLSHARP_FLAGS = -I lib
 SMLSHARP_CFLAGS = -O2
 SMLSHARP_LDFLAGS =
-CFLAGS += -m32
+CFLAGS += -m32 -Iinclude
 
 # ------------------------------------------------------------
 #  prepare variables
