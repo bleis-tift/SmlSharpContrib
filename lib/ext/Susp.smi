@@ -1,0 +1,23 @@
+_require "basis.smi"
+
+structure Susp = struct
+  type 'a t (= boxed)
+
+  type 'a susp = 'a t
+
+  val delay : (unit -> 'a) -> 'a t
+  val force : 'a t -> 'a
+
+  val lazy : (unit -> 'a t) -> 'a t
+  val fromVal : 'a -> 'a t
+
+  val isEvaluated : 'a t -> bool
+  val isExn : 'a t -> bool
+  val isVal : 'a t -> bool
+
+  val peek : 'a t -> 'a option
+  val map : ('a -> 'b) -> 'a t -> 'b t
+  val bind : 'a t -> ('a -> 'b t) -> 'b t
+  val join : 'a t t -> 'a t
+  val return : 'a -> 'a t
+end
