@@ -1,10 +1,9 @@
 _require "basis.smi"
+_require "../ext/Std.smi"
 _require "JsonValue.smi"
-_require "JsonDecoder.smi"
-_require "JsonEncoder.smi"
 
-structure Json = struct
-  type t = JsonValue.t
+structure JsonEncoder = struct
+
   structure Args = struct
     type t (= boxed)
     val minify : t
@@ -15,8 +14,7 @@ structure Json = struct
     val twoSpaceCrlf : t
     val fourSpaceCrlf : t
   end
-  val decode : string -> t option
-  val equal : t * t -> bool
-  val encode : Args.t -> t -> string option
+
+  val encode : Args.t -> JsonValue.t -> string option
 end
 
