@@ -1,0 +1,23 @@
+_require "basis.smi"
+structure Re = struct
+datatype t
+  = Item of char
+  | Or of t * t
+  | And of t * t
+  | Kleene of t
+  | Any
+  | Empty
+
+exception Lex
+exception Parse
+
+val re : string -> t
+val match : t * string * int ->  (int * int) option
+val matchString : t * string * int -> (string * string list) option
+val matchStrings : t * string * int -> string list
+val doesMatch : t * string * int -> bool
+val split : t * string * int -> string list
+val replace : t * string * int * string-> string
+val replaceAll : t * string * int * string -> string
+end
+
