@@ -2,6 +2,8 @@ structure Re =
 struct
 datatype t
   = Item of char
+  | LineStart
+  | LineEnd
   | Or of t * t
   | And of t * t
   | Kleene of t
@@ -9,7 +11,10 @@ datatype t
   | Empty
         
 datatype token
-  = Char of char
+  = SOS
+  | Char of char
+  | Hat
+  | Dollar
   | Dot
   | Star
   | Plus
@@ -17,16 +22,18 @@ datatype token
   | Option
   | LeftParen
   | RightParen
-  | EOF
+  | EOS
 
 exception Lex
 
 fun lex str =
   let
-      fun loop [] = [EOF]
+      fun loop [] = [EOS]
         | loop (c :: cs) = 
           case c of
               #"." => Dot :: loop cs
+            | #"^" => Hat :: loop cs
+            | #"$" => Dollar :: loop cs
             | #"*" => Star :: loop cs
             | #"|" => Bar :: loop cs
             | #"+" => Plus :: loop cs
@@ -39,7 +46,7 @@ fun lex str =
             | _  => Char c :: loop cs
                                    
   in
-      loop (String.explode str)
+      SOS :: (loop (String.explode str))
   end
 
 
@@ -51,12 +58,18 @@ fun parse_one [] = NONE
         Char c => SOME(Item c, ts)
       | LeftParen => SOME(parse(ts, [], RightParen))
       | _ => NONE              
-and parse([], acc, EOF)  = (List.foldl (fn(x, y) => And(x, y)) Empty acc, [])
-  | parse((t :: ts), acc, e) =
+and parse((t :: ts), acc, e) =
     if t = e
     then (List.foldl (fn(x, y) => And(x, y)) Empty acc, ts)
     else (case t of
-              Char c =>  parse(ts, (Item c) :: acc, e)
+              SOS => (case ts of
+                          Hat :: ts'=> parse(ts', LineStart :: acc, e)
+                        | _ => parse(ts, acc, e))
+            | Char c => parse(ts, (Item c) :: acc, e)
+            | Dollar => (case ts of
+                             [EOS] => parse(ts, LineEnd :: acc, e)
+                           | _ => parse(ts, (Item #"$") :: acc, e))
+            | Hat => parse(ts, (Item #"^") :: acc, e)
             | Dot => parse(ts, Any :: acc, e)
             | Star => (case acc of
                            [] => raise Parse
@@ -102,7 +115,7 @@ fun compaction a =
       
 
 fun re str =
-  let val (res, _) = parse(lex str, [], EOF) in compaction res end
+  let val (res, _) = parse(lex str, [], EOS) in compaction res end
 
 
 datatype result
@@ -117,6 +130,14 @@ fun match_aux(r, rest, str, i) =
                   then Success(i, i+1)
                   else Continue)
                  handle Subscript => Fail)
+    | LineStart => ((if i = 0  orelse String.sub(str, i - 1) = #"\n"
+                     then Success(i, i)
+                     else Continue)
+                    handle Subscript => Fail)
+    | LineEnd => ((if i = (String.size str) orelse String.sub(str, i + 1) = #"\n"
+                   then Success(i, i)
+                   else Continue)
+                  handle Subscript => Fail)
     | Or(x, y) => (case match_aux(x, rest, str, i) of
                        Success(s, e) => (case match_aux(rest, Empty, str, e) of (* backtrack *)
                                              Success _ => Success(s, e)
@@ -150,9 +171,9 @@ fun match_aux(r, rest, str, i) =
                                | Continue => Continue
                                | Fail => Fail))
     | Any => ((if 0 <= i andalso (i < String.size str)
-                  then Success(i, i+1)
-                  else Continue)
-                 handle Subscript => Fail)
+               then Success(i, i+1)
+               else Continue)
+              handle Subscript => Fail)
     | Empty => Success(i, i)      
 
 fun match(r, str, i) =
