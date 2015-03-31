@@ -4,8 +4,8 @@ datatype t
   = Item of char
   | LineStart
   | LineEnd
-  | Or of t * t
-  | And of t * t
+  | Or of t list
+  | And of t list
   | Kleene of t
   | Any
   | Empty

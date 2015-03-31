@@ -4,8 +4,8 @@ datatype t
   = Item of char
   | LineStart
   | LineEnd
-  | Or of t * t
-  | And of t * t
+  | Or of t list
+  | And of t list
   | Kleene of t
   | Any
   | Empty
@@ -60,7 +60,7 @@ fun parse_one [] = NONE
       | _ => NONE              
 and parse((t :: ts), acc, e) =
     if t = e
-    then (List.foldl (fn(x, y) => And(x, y)) Empty acc, ts)
+    then (And(List.foldl (fn(x, y) => (x :: y)) [] acc), ts)
     else (case t of
               SOS => (case ts of
                           Hat :: ts'=> parse(ts', LineStart :: acc, e)
@@ -76,12 +76,12 @@ and parse((t :: ts), acc, e) =
                          | x :: xs => parse(ts, Kleene x :: xs, e))
             | Plus => (case acc of
                            [] => raise Parse
-                         | x :: xs => parse(ts, And(x,Kleene x) :: xs, e))
+                         | x :: xs => parse(ts, And(x :: [Kleene x]) :: xs, e))
             | Option => (case acc of
                              [] => raise Parse
-                           | x :: xs => parse(ts, Or(x, Empty) :: xs, e))
+                           | x :: xs => parse(ts, Or(x :: [Empty]) :: xs, e))
             | Bar => (case (parse_one ts, acc) of
-                          (SOME(result, rest), x :: xs) => parse(rest, Or(x, result) :: xs, e)
+                          (SOME(result, rest), x :: xs) => parse(rest, Or(x :: [result]) :: xs, e)
                         | _ => raise Parse)
             | LeftParen => let val (result, rest) = parse(ts, [], RightParen)
                            in  parse(rest, result :: acc, e) end
@@ -91,26 +91,31 @@ and parse((t :: ts), acc, e) =
 (* Not for performance but for pretty printing *)
 fun compaction a =
   let
-      fun c (And(x, Empty)) = c x
-        | c (And(x, y)) =
-          let
-              val x' = c x
-              val y' = c y
-          in
-              if x' = Empty
-              then y'
-              else if y' = Empty
-              then x'
-              else And(x', y')
-          end
-        | c (Or(x, y)) = if x = y
-                         then c x
-                         else Or(c x, c y)
-        | c (Kleene Empty) = Empty
-        | c (Kleene x) = Kleene(c x)
+      (* flatten like And [And [a, b], c ] -> And [a, b, c] *)
+      fun f (And xs) = And (List.foldr (fn (x, y) =>
+                                    let val x' = f x in
+                                        case x' of
+                                            And xs' => xs' @ y
+                                         |  _ => x' :: y
+                                    end) [] xs)
+        | f (Or xs) = Or (List.foldr (fn (x, y) =>
+                                    let val x' = f x in
+                                        case x' of
+                                            Or xs' => xs' @ y
+                                         |  _ => x' :: y
+                                    end) [] xs)
+        | f (Kleene x) = Kleene (f x)
+        | f x = x
+      fun c (And xs) = (case (List.filter (fn x => x = Empty) (List.map c xs)) of
+                            [] => Empty
+                          | xs' => And xs')
+        | c (Or xs) = Or (List.map c xs)
+        | c (Kleene x) = (case c x of
+                              Empty => Empty
+                            | x' => Kleene x')
         | c x =  x
   in
-      c a
+      a
   end
       
 
@@ -138,15 +143,17 @@ fun match_aux(r, rest, str, i) =
                    then Success(i, i)
                    else Continue)
                   handle Subscript => Fail)
-    | Or(x, y) => (case match_aux(x, rest, str, i) of
+    | Or [] => Continue
+    | Or (x :: xs) => (case match_aux(x, rest, str, i) of
                        Success(s, e) => (case match_aux(rest, Empty, str, e) of (* backtrack *)
                                              Success _ => Success(s, e)
-                                           | Continue => match_aux(y, rest, str, i)
-                                           | Fail => match_aux(y, rest, str, i) )
-                     | Continue => match_aux(y, rest, str, i)
-                     | Fail => match_aux(y, rest, str, i))
-    | And(x, y) => (case (case match_aux(x, y, str, i) of
-                              Success(_, e) => match_aux(y, rest, str, e)
+                                           | Continue => match_aux(Or xs, rest, str, i)
+                                           | Fail => match_aux(Or xs, rest, str, i) )
+                     | Continue => match_aux(Or xs, rest, str, i)
+                     | Fail => match_aux(Or xs, rest, str, i))
+    | And [] => Success(i, i)
+    | And (x :: xs) => (case (case match_aux(x, And xs, str, i) of
+                              Success(_, e) => match_aux(And xs, rest, str, e)
                             | Continue => Continue
                             | Fail => Fail) of
                         Success(_, e) => Success(i, e)
