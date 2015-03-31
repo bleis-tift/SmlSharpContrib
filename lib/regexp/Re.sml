@@ -110,7 +110,8 @@ fun complementSet xs =
   end
 
 fun parseCharSet [] acc = List.rev acc
-  | parseCharSet (SOS :: (Char #"!") :: ts) acc = complementSet (parseCharSet ts acc)
+  | parseCharSet (SOS :: Hat :: ts) acc = complementSet (parseCharSet (SOS :: ts) acc)
+  | parseCharSet (SOS :: RightBrackt :: ts) acc = parseCharSet ts ((toItem RightBrackt) :: acc)
   | parseCharSet (SOS :: ts) acc = parseCharSet ts acc
   | parseCharSet ((Char #"-") :: t :: ts) acc = (case acc of
                                                      (Item x) :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) @ xs)
@@ -151,9 +152,11 @@ and parse((t :: ts), acc, e) =
             | LeftParen => let val (result, rest) = parse(ts, [], RightParen)
                            in  parse(rest, result :: acc, e) end
             | LeftBracket => let fun collect (RightBrackt :: xs) acc' = (List.rev acc', xs)
+                                   | collect (SOS :: RightBrackt :: xs) acc' = collect xs (RightBrackt :: acc')
+                                   | collect (SOS :: xs) acc' = collect xs  acc'
                                    | collect (x :: xs) acc' = collect xs (x :: acc')
                                    | collect [] _ = raise Parse
-                                 val (charSet, rest) = collect ts []
+                                 val (charSet, rest) = collect (SOS :: ts) []
                              in
                                  parse(rest, (Or (parseCharSet (SOS :: charSet) []) :: acc), e)
                              end
