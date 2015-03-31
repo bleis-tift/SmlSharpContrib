@@ -25,6 +25,7 @@ datatype token
   | LeftBracket
   | RightBrackt
   | Hyphen
+  | Bang
   | EOS
 
 fun toItem t =
@@ -41,7 +42,6 @@ fun toItem t =
     | RightParen => Item #"("
     | LeftBracket => Item #"["
     | RightBrackt => Item #"]"
-    | Hyphen => Item #"-"
     | _ => Item #" "
 
 fun toChar t =
@@ -58,7 +58,6 @@ fun toChar t =
     | RightParen => Char #"("
     | LeftBracket => Char #"["
     | RightBrackt => Char #"]"
-    | Hyphen => Char #"-"
     | _ => Char #" "
 
 exception Lex
@@ -82,7 +81,6 @@ fun lex str =
             | #")" => RightParen :: loop cs
             | #"[" => LeftBracket :: loop cs
             | #"]" => RightBrackt :: loop cs
-            | #"-" => Hyphen :: loop cs
             | _  => Char c :: loop cs
                                    
   in
@@ -97,18 +95,28 @@ fun makeRange(Char s, Char e) =
       val si = Char.ord s
       val ei = Char.ord e
   in
-      Or(List.tabulate(ei - si + 1, fn i => Item (Char.chr (si + i))))
+      List.tabulate(ei - si + 1, fn i => Item (Char.chr (si + i)))
   end
   | makeRange _ =  raise Parse
 
-(* :TODO: complement *)
-fun parseCharSet [] acc = Or(List.rev acc)
+fun complementSet xs =
+  let
+      val whole = List.tabulate((Char.ord Char.maxChar) - (Char.ord Char.minChar) + 1 , fn i => (Char.chr ((Char.ord Char.minChar) + i)))
+      val str = (String.implode (List.map (fn x => case x of
+                                                       Item x' => x'
+                                                     | _ => raise Parse ) xs))
+  in
+      List.map (fn x => Item x) (List.filter (fn x => Char.notContains str x) whole)
+  end
+
+fun parseCharSet [] acc = List.rev acc
+  | parseCharSet (SOS :: (Char #"!") :: ts) acc = complementSet (parseCharSet ts acc)
   | parseCharSet (SOS :: ts) acc = parseCharSet ts acc
-  | parseCharSet (Hyphen :: t :: ts) acc = (case acc of
-                                              Item x :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) :: xs)
-                                            | _ => raise Parse)
+  | parseCharSet ((Char #"-") :: t :: ts) acc = (case acc of
+                                                     (Item x) :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) @ xs)
+                                                   | _ => raise Parse)
   | parseCharSet (t :: ts) acc = parseCharSet ts ((toItem t) :: acc)
-  
+                                              
 
 fun parse_one [] = NONE
   | parse_one((t :: ts) : token list) =
@@ -147,7 +155,7 @@ and parse((t :: ts), acc, e) =
                                    | collect [] _ = raise Parse
                                  val (charSet, rest) = collect ts []
                              in
-                                 parse(rest, ((parseCharSet (SOS :: charSet) []) :: acc), e)
+                                 parse(rest, (Or (parseCharSet (SOS :: charSet) []) :: acc), e)
                              end
             | Hat => parse(ts, (Item #"^") :: acc, e)
             | RightParen=> parse(ts, (Item #")") :: acc, e)
@@ -160,17 +168,17 @@ fun compaction a =
   let
       (* flatten like And [And [a, b], c ] -> And [a, b, c] *)
       fun f (And xs) = And (List.foldr (fn (x, y) =>
-                                    let val x' = f x in
-                                        case x' of
-                                            And xs' => xs' @ y
-                                         |  _ => x' :: y
-                                    end) [] xs)
+                                           let val x' = f x in
+                                               case x' of
+                                                   And xs' => xs' @ y
+                                                |  _ => x' :: y
+                                           end) [] xs)
         | f (Or xs) = Or (List.foldr (fn (x, y) =>
-                                    let val x' = f x in
-                                        case x' of
-                                            Or xs' => xs' @ y
-                                         |  _ => x' :: y
-                                    end) [] xs)
+                                         let val x' = f x in
+                                             case x' of
+                                                 Or xs' => xs' @ y
+                                              |  _ => x' :: y
+                                         end) [] xs)
         | f (Kleene x) = Kleene (f x)
         | f x = x
       (* remove Empty *)
@@ -214,20 +222,20 @@ fun match_aux(r, rest, str, i) =
                   handle Subscript => Fail)
     | Or [] => Continue
     | Or (x :: xs) => (case match_aux(x, rest, str, i) of
-                       Success(s, e) => (case match_aux(rest, Empty, str, e) of (* backtrack *)
-                                             Success _ => Success(s, e)
-                                           | Continue => match_aux(Or xs, rest, str, i)
-                                           | Fail => match_aux(Or xs, rest, str, i) )
-                     | Continue => match_aux(Or xs, rest, str, i)
-                     | Fail => match_aux(Or xs, rest, str, i))
+                           Success(s, e) => (case match_aux(rest, Empty, str, e) of (* backtrack *)
+                                                 Success _ => Success(s, e)
+                                               | Continue => match_aux(Or xs, rest, str, i)
+                                               | Fail => match_aux(Or xs, rest, str, i) )
+                         | Continue => match_aux(Or xs, rest, str, i)
+                         | Fail => match_aux(Or xs, rest, str, i))
     | And [] => Success(i, i)
     | And (x :: xs) => (case (case match_aux(x, And xs, str, i) of
-                              Success(_, e) => match_aux(And xs, rest, str, e)
-                            | Continue => Continue
-                            | Fail => Fail) of
-                        Success(_, e) => Success(i, e)
-                      | Continue => Continue
-                      | Fail => Fail)
+                                  Success(_, e) => match_aux(And xs, rest, str, e)
+                                | Continue => Continue
+                                | Fail => Fail) of
+                            Success(_, e) => Success(i, e)
+                          | Continue => Continue
+                          | Fail => Fail)
     | Kleene x => (case match_aux(x, rest, str, i) of
                        Success(_, e) =>
                        (case match_aux(rest, Empty, str, e) of (* for backtrack *)
