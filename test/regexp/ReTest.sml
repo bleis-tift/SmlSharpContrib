@@ -22,6 +22,9 @@ fun assertMatch expected actual =
 fun assertNotMatch actual =
   assertNone actual
 
+fun assertMatchString expected actual =
+  (assertSome actual;
+   assertEqual2Tuple (assertEqualString, assertEqualStringList) expected (Option.valOf actual))
 (* re *)
 
 fun re_simplest_test () =
@@ -100,13 +103,23 @@ fun match_plus_test () =
    assertMatch (1, 2) (match(re "a+", "ba", 0)))
 
 (* matchString *)
+fun matchString_simple_test () =
+  assertMatchString ("a", []) (matchString(re "a", "a", 0))
 (* matchstrings *)
+fun matchStrings_simple_test () =
+  assertEqualStringList ["a", "a"] (matchStrings(re "a", "aa", 0))
 (* doesMatch *)
+fun doesMatch_simple_test () =
+  assertTrue (doesMatch(re "a", "a", 0))
 (* split *)
+fun split_simpl_test () =
+  assertEqualStringList ["a", "b", "c"] (split(re " ", "a b c", 0))
 (* replace *)
-fun replace_simplest_test () =
-  assertEqual
+fun replace_simple_test () =
+  assertEqualString "b" (replace(re"a", "a", 0, "b"))
 (* replaceAll *)
+fun replaceAll_simple_test () =
+  assertEqualString "b" (replace(re"a", "a", 0, "b"))
       
 
 fun suite _ =Test.labelTests [
@@ -120,10 +133,23 @@ fun suite _ =Test.labelTests [
       ("re: parse error against #\"+\" without any leading chars", re_parse_error_plus_no_leading_char_test),
       ("re: parse error against #\"?\" without any leading chars", re_parse_error_question_no_leading_char_test),
       ("re: parse error against illeagal #\"|\"", re_parse_error_bar_test),
+
       ("match: simple string", match_simplest_test),
       ("match: match start from non-zero", match_start_from_i_test),
       ("match: /./", match_any_test),
       ("match: /a*/", match_star_test),
-      ("match: /a+/", match_plus_test)
+      ("match: /a+/", match_plus_test),
+      
+      ("matchString: simple string", matchString_simple_test),
+
+      ("matchStrings: simple string", matchStrings_simple_test),
+
+      ("doesMatch: simple string", doesMatch_simple_test),
+
+      ("split: simple string", split_simpl_test),
+
+      ("replace: simple string" , replace_simple_test),
+
+      ("replaceAll: simple string" , replaceAll_simple_test)
   ]
 end
