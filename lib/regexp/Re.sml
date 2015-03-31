@@ -22,7 +22,44 @@ datatype token
   | Option
   | LeftParen
   | RightParen
+  | LeftBracket
+  | RightBrackt
+  | Hyphen
   | EOS
+
+fun toItem t =
+  case t of
+      Char x => Item x
+    | Hat => Item #"^"
+    | Dollar => Item #"$"
+    | Dot => Item #"."
+    | Star => Item #"*"
+    | Plus => Item #"+"
+    | Bar => Item #"|"
+    | Option => Item #"?"
+    | LeftParen => Item #")"
+    | RightParen => Item #"("
+    | LeftBracket => Item #"["
+    | RightBrackt => Item #"]"
+    | Hyphen => Item #"-"
+    | _ => Item #" "
+
+fun toChar t =
+  case t of
+      Char x => Char x
+    | Hat => Char #"^"
+    | Dollar => Char #"$"
+    | Dot => Char #"."
+    | Star => Char #"*"
+    | Plus => Char #"+"
+    | Bar => Char #"|"
+    | Option => Char #"?"
+    | LeftParen => Char #")"
+    | RightParen => Char #"("
+    | LeftBracket => Char #"["
+    | RightBrackt => Char #"]"
+    | Hyphen => Char #"-"
+    | _ => Char #" "
 
 exception Lex
 
@@ -43,6 +80,9 @@ fun lex str =
                           | c' :: cs' =>  Char c' :: loop cs')
             | #"(" => LeftParen :: loop cs
             | #")" => RightParen :: loop cs
+            | #"[" => LeftBracket :: loop cs
+            | #"]" => RightBrackt :: loop cs
+            | #"-" => Hyphen :: loop cs
             | _  => Char c :: loop cs
                                    
   in
@@ -51,6 +91,24 @@ fun lex str =
 
 
 exception Parse
+
+fun makeRange(Char s, Char e) =
+  let
+      val si = Char.ord s
+      val ei = Char.ord e
+  in
+      Or(List.tabulate(ei - si + 1, fn i => Item (Char.chr (si + i))))
+  end
+  | makeRange _ =  raise Parse
+
+(* :TODO: complement *)
+fun parseCharSet [] acc = Or(List.rev acc)
+  | parseCharSet (SOS :: ts) acc = parseCharSet ts acc
+  | parseCharSet (Hyphen :: t :: ts) acc = (case acc of
+                                              Item x :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) :: xs)
+                                            | _ => raise Parse)
+  | parseCharSet (t :: ts) acc = parseCharSet ts ((toItem t) :: acc)
+  
 
 fun parse_one [] = NONE
   | parse_one((t :: ts) : token list) =
@@ -69,7 +127,6 @@ and parse((t :: ts), acc, e) =
             | Dollar => (case ts of
                              [EOS] => parse(ts, LineEnd :: acc, e)
                            | _ => parse(ts, (Item #"$") :: acc, e))
-            | Hat => parse(ts, (Item #"^") :: acc, e)
             | Dot => parse(ts, Any :: acc, e)
             | Star => (case acc of
                            [] => raise Parse
@@ -85,6 +142,16 @@ and parse((t :: ts), acc, e) =
                         | _ => raise Parse)
             | LeftParen => let val (result, rest) = parse(ts, [], RightParen)
                            in  parse(rest, result :: acc, e) end
+            | LeftBracket => let fun collect (RightBrackt :: xs) acc' = (List.rev acc', xs)
+                                   | collect (x :: xs) acc' = collect xs (x :: acc')
+                                   | collect [] _ = raise Parse
+                                 val (charSet, rest) = collect ts []
+                             in
+                                 parse(rest, ((parseCharSet (SOS :: charSet) []) :: acc), e)
+                             end
+            | Hat => parse(ts, (Item #"^") :: acc, e)
+            | RightParen=> parse(ts, (Item #")") :: acc, e)
+            | RightBrackt => parse(ts, (Item #"]") :: acc, e)
             | _ =>  raise Parse)
   | parse _ =  raise Parse
 
@@ -106,8 +173,10 @@ fun compaction a =
                                     end) [] xs)
         | f (Kleene x) = Kleene (f x)
         | f x = x
-      fun c (And xs) = (case (List.filter (fn x => x = Empty) (List.map c xs)) of
+      (* remove Empty *)
+      fun c (And xs) = (case (List.filter (fn x => x <> Empty) (List.map c xs)) of
                             [] => Empty
+                          | [x] => x
                           | xs' => And xs')
         | c (Or xs) = Or (List.map c xs)
         | c (Kleene x) = (case c x of
@@ -115,7 +184,7 @@ fun compaction a =
                             | x' => Kleene x')
         | c x =  x
   in
-      a
+      c (f a)
   end
       
 
