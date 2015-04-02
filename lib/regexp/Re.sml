@@ -24,6 +24,8 @@ datatype token
   | RightParen
   | LeftBracket
   | RightBrackt
+  | LeftBrace
+  | RightBrace
   | Hyphen
   | Bang
   | EOS
@@ -42,6 +44,8 @@ fun toItem t =
     | RightParen => Item #"("
     | LeftBracket => Item #"["
     | RightBrackt => Item #"]"
+    | LeftBrace => Item #"{"
+    | RightBrace => Item #"}"
     | _ => Item #" "
 
 fun toChar t =
@@ -58,6 +62,8 @@ fun toChar t =
     | RightParen => Char #"("
     | LeftBracket => Char #"["
     | RightBrackt => Char #"]"
+    | LeftBrace => Char #"{"
+    | RightBrace => Char #"}"
     | _ => Char #" "
 
 exception Lex
@@ -81,6 +87,8 @@ fun lex str =
             | #")" => RightParen :: loop cs
             | #"[" => LeftBracket :: loop cs
             | #"]" => RightBrackt :: loop cs
+            | #"{" => LeftBrace :: loop cs
+            | #"}" => RightBrace :: loop cs
             | _  => Char c :: loop cs
                                    
   in
@@ -160,9 +168,32 @@ and parse((t :: ts), acc, e) =
                              in
                                  parse(rest, (Or (parseCharSet (SOS :: charSet) []) :: acc), e)
                              end
+            | LeftBrace => let fun collect1 ((Char #",") :: xs) [] l = (xs, NONE)
+                                 | collect1 ((Char #",") :: xs) acc' l = (case Int.fromString (String.implode (List.rev acc')) of
+                                                                                SOME l' =>  (xs, SOME l')
+                                                                              | NONE => raise Parse)
+                                 | collect1 ((Char x) :: xs) acc' l =  collect1 xs (x :: acc') l
+                                 | collect1 _ _ _ = raise Parse
+                               fun collect2 (RightBrace :: xs) [] r = (xs, NONE)
+                                 | collect2 (RightBrace :: xs) acc' r = (case Int.fromString (String.implode (List.rev acc')) of
+                                                                              SOME r' => (xs, SOME r')
+                                                                            | NONE => raise Parse)
+                                 | collect2 ((Char x) :: xs) acc' r =  collect2 xs (x :: acc') r
+                                 | collect2 _ _ _ =  raise Parse
+                               val (xs, l) = collect1 ts [] NONE
+                               val (xs', r) = collect2 xs [] NONE
+                           in
+                               case (l, r, acc) of
+                                   (SOME l', SOME r', a :: acc'') => parse(xs', (And  ((List.tabulate(l', (fn _ => a))) @
+                                                                                       [(And (List.tabulate((r' - l'), (fn _ => Or [a, Empty]))))])) :: acc'', e)
+                                 | (NONE, SOME r', a :: acc'') => parse(xs', (And (List.tabulate(r', (fn _ => Or [a, Empty])))) :: acc'', e)
+                                 | (SOME l', NONE, a :: acc'') => parse(xs', (And (List.tabulate(l', (fn _ => a)))) :: acc'', e)
+                                 | _ => raise Parse
+                           end
             | Hat => parse(ts, (Item #"^") :: acc, e)
             | RightParen=> parse(ts, (Item #")") :: acc, e)
             | RightBrackt => parse(ts, (Item #"]") :: acc, e)
+            | RightBrace => parse(ts, (Item #"}") :: acc, e)
             | _ =>  raise Parse)
   | parse _ =  raise Parse
 
