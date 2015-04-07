@@ -112,7 +112,10 @@ fun re_curly_brace_test () =
    assertWork (fn _ => re "a{,1}");
    assertWork (fn _ => re "a{0,10}");
    assertWork (fn _ => re "a{0,}");
-   assertWork (fn _ => re "a{10,}"))
+   assertWork (fn _ => re "a{10,}");
+   assertWork (fn _ => re "(a){10,}");
+   assertWork (fn _ => re "(a|b){10,}");
+   assertWork (fn _ => re "[a-b]{10,}"))
 
 fun re_lex_error_backslash_test () =
   assertLexError (fn _ => re "\\")
