@@ -104,6 +104,16 @@ fun re_lineend_test () =
    assertWork (fn _ => re "^$");
    assertWork (fn _ => re "[$]");
    assertWork (fn _ => re "($)"))
+fun re_curly_brace_test () =
+  (assertWork (fn _ => re "a{0,1}");
+   assertWork (fn _ => re "a{0,0}");
+   assertWork (fn _ => re "a{0,10}");
+   assertWork (fn _ => re "a{10,11}");
+   assertWork (fn _ => re "a{,1}");
+   assertWork (fn _ => re "a{0,10}");
+   assertWork (fn _ => re "a{0,}");
+   assertWork (fn _ => re "a{10,}"))
+
 fun re_lex_error_backslash_test () =
   assertLexError (fn _ => re "\\")
 fun re_parse_error_star_no_leading_char_test () =
@@ -113,13 +123,23 @@ fun re_parse_error_plus_no_leading_char_test () =
 fun re_parse_error_question_no_leading_char_test () =
   assertParseError (fn _ => re "?")
 fun re_parse_error_bar_test () =
-  (assertParseError (fn _ =>re "|");
-   assertParseError (fn _ =>re "a|");
-   assertParseError (fn _ =>re "|b");
-   assertParseError (fn _ =>re "a(|)b");
-   assertParseError (fn _ =>re "(a|)b");
-   assertParseError (fn _ =>re "a(|b)"))
-
+  (assertParseError (fn _ => re "|");
+   assertParseError (fn _ => re "a|");
+   assertParseError (fn _ => re "|b");
+   assertParseError (fn _ => re "a(|)b");
+   assertParseError (fn _ => re "(a|)b");
+   assertParseError (fn _ => re "a(|b)"))
+fun re_parse_error_paren () =
+  (assertParseError (fn _ => re "(");
+   assertParseError (fn _ => re ")(");
+   assertParseError (fn _ => re "(\\)");
+   assertParseError (fn _ => re "([)]"))
+fun re_parse_error_char_set () =
+  (assertParseError (fn _ => re "[");
+   assertParseError (fn _ => re "[\\]");
+   assertParseError (fn _ => re "][");
+   assertParseError (fn _ => re "[z-a]")
+  )
 (* match *)
 val emptyMatchGroup = Array.array(0, (0, 0))
 fun match_simplest_test () =
@@ -182,6 +202,7 @@ fun suite _ =Test.labelTests [
       ("re: charset complement", re_charset_complement_test),
       ("re: line start", re_linestart_test),
       ("re: line end", re_lineend_test),
+      ("re: number specified matchng", re_curly_brace_test),
       ("re: simple quote", re_backslash_test),
       ("re: quoting meta chars", re_backslash_metachars_test),
       ("re: quoting left paren", re_backslash_leftparen_test),
@@ -190,6 +211,8 @@ fun suite _ =Test.labelTests [
       ("re: parse error against #\"+\" without any leading chars", re_parse_error_plus_no_leading_char_test),
       ("re: parse error against #\"?\" without any leading chars", re_parse_error_question_no_leading_char_test),
       ("re: parse error against illeagal #\"|\"", re_parse_error_bar_test),
+      ("re: parse error against unmatching parens", re_parse_error_paren),
+      ("re: parse error against charset", re_parse_error_char_set),
 
       ("match: simple string", match_simplest_test),
       ("match: match start from non-zero", match_start_from_i_test),
