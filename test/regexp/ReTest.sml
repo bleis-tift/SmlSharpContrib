@@ -89,7 +89,21 @@ fun re_backslash_rightparen_test () =
    assertWork (fn _ => re "a\\)()b");
    assertWork (fn _ => re "a()\\)b");
    assertWork (fn _ => re "a(\\))b"))
-
+fun re_linestart_test () =
+  (assertWork (fn _ => re "^");
+   assertWork (fn _ => re "^a");
+   assertWork (fn _ => re "a^");
+   assertWork (fn _ => re "^[^a]");
+   assertWork (fn _ => re "\\^");
+   assertWork (fn _ => re "a^");
+   assertWork (fn _ => re "(^)"))
+fun re_lineend_test () =
+  (assertWork (fn _ => re "$");
+   assertWork (fn _ => re "\\$");
+   assertWork (fn _ => re "$a");
+   assertWork (fn _ => re "^$");
+   assertWork (fn _ => re "[$]");
+   assertWork (fn _ => re "($)"))
 fun re_lex_error_backslash_test () =
   assertLexError (fn _ => re "\\")
 fun re_parse_error_star_no_leading_char_test () =
@@ -166,6 +180,8 @@ fun suite _ =Test.labelTests [
       ("re: contianing parens", re_paren_test),
       ("re: charset", re_charset_test),
       ("re: charset complement", re_charset_complement_test),
+      ("re: line start", re_linestart_test),
+      ("re: line end", re_lineend_test),
       ("re: simple quote", re_backslash_test),
       ("re: quoting meta chars", re_backslash_metachars_test),
       ("re: quoting left paren", re_backslash_leftparen_test),
