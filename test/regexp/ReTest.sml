@@ -188,7 +188,22 @@ fun match_plus_test () =
    assertMatch (0, 2, Array.fromList []) (match(re "a+", "aa", 0));
    assertNotMatch     (match(re "a+", "b", 0));
    assertMatch (1, 2, Array.fromList []) (match(re "a+", "ba", 0)))
-
+fun match_option_test () =
+  (assertMatch (0, 1, Array.fromList []) (match(re "a?", "a", 0));
+   assertMatch (0, 0, Array.fromList []) (match(re "a?", "", 0));
+   assertMatch (0, 0, Array.fromList []) (match(re "a?", "ba", 0)))
+fun match_linestart_test () =
+  (assertMatch (0, 0, Array.fromList []) (match(re "^", "", 0));
+   assertMatch (0, 0, Array.fromList []) (match(re "^", "a", 0));
+   assertNotMatch                        (match(re "a^", "a", 0));
+   assertMatch (0, 2, Array.fromList []) (match(re "a^", "a^b", 0));
+   assertMatch (2, 3, Array.fromList []) (match(re "^a", "b\na", 0)))
+fun match_lineend_test () =
+  (assertMatch (0, 0, Array.fromList []) (match(re "$", "", 0));
+   assertMatch (1, 1, Array.fromList []) (match(re "$", "a", 0));
+   assertNotMatch                        (match(re "$a", "a", 0));
+   assertMatch (1, 3, Array.fromList []) (match(re "$a", "b$a", 0));
+   assertMatch (0, 1, Array.fromList []) (match(re "a$", "a\nb", 0)))
 (* matchString *)
 fun matchString_simple_test () =
   assertMatchString ("a", Array.fromList []) (matchString(re "a", "a", 0))
@@ -233,6 +248,9 @@ fun suite _ =Test.labelTests [
       ("match: /./", match_any_test),
       ("match: /a*/", match_star_test),
       ("match: /a+/", match_plus_test),
+      ("match: /a?/", match_option_test),
+      ("match: /^/", match_linestart_test),
+      ("match: /$/", match_lineend_test),
       
       ("matchString: simple string", matchString_simple_test),
 
