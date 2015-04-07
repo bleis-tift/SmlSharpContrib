@@ -123,6 +123,7 @@ fun complementSet xs =
 fun parseCharSet [] acc = List.rev acc
   | parseCharSet (SOS :: Hat :: ts) acc = complementSet (parseCharSet (SOS :: ts) acc)
   | parseCharSet (SOS :: RightBrackt :: ts) acc = parseCharSet ts ((toItem RightBrackt) :: acc)
+  | parseCharSet (SOS :: (Char #"-") :: ts) acc = parseCharSet ts ((Item #"-") :: acc)
   | parseCharSet (SOS :: ts) acc = parseCharSet ts acc
   | parseCharSet ((Char #"-") :: t :: ts) acc = (case acc of
                                                      (Item x) :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) @ xs)
