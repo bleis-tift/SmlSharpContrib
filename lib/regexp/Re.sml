@@ -107,6 +107,7 @@ fun makeRange(Char s, Char e) =
       val ei = Char.ord e
   in
       List.tabulate(ei - si + 1, fn i => Item (Char.chr (si + i)))
+      handle Size => raise Parse
   end
   | makeRange _ =  raise Parse
 
