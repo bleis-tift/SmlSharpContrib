@@ -41,6 +41,10 @@ fun re_charset_test () =
    assertWork (fn _ => re "([a])");
    assertWork (fn _ => re "[(]");
    assertWork (fn _ => re "[)]");
+   assertWork (fn _ => re "[{]");
+   assertWork (fn _ => re "[}]");
+   assertWork (fn _ => re "[[]");
+   assertWork (fn _ => re "[]]");
    assertWork (fn _ => re "[a-c]");
    assertWork (fn _ => re "[a-a]");
    assertWork (fn _ => re "[a-]");
@@ -50,6 +54,24 @@ fun re_charset_test () =
    assertWork (fn _ => re "[|]");
    assertWork (fn _ => re "[a^]");
    assertWork (fn _ => re "[-^]"))
+fun re_charset_complement_test () =
+  (assertWork (fn _ => re "[^a]");
+   assertWork (fn _ => re "[^ab]");
+   assertWork (fn _ => re "[^a-c]");
+   assertWork (fn _ => re "[^a-a]");
+   assertWork (fn _ => re "[^!]");
+   assertWork (fn _ => re "[^|]");
+   assertWork (fn _ => re "[^{]");
+   assertWork (fn _ => re "[^}]");
+   assertWork (fn _ => re "[^(]");
+   assertWork (fn _ => re "[^)]");
+   assertWork (fn _ => re "[^[]");
+   assertWork (fn _ => re "[^]]");
+   assertWork (fn _ => re "[^\\a]");
+   assertWork (fn _ => re "[^\\\\a]");
+   assertWork (fn _ => re "[^-]");
+   assertWork (fn _ => re "[^-a]");
+   assertWork (fn _ => re "[^,]"))
 fun re_backslash_test () =
   assertWork (fn _ => re "a\\b")
 fun re_backslash_metachars_test () =
@@ -143,6 +165,7 @@ fun suite _ =Test.labelTests [
       ("re: simple regexp", re_simplest_test),
       ("re: contianing parens", re_paren_test),
       ("re: charset", re_charset_test),
+      ("re: charset complement", re_charset_complement_test),
       ("re: simple quote", re_backslash_test),
       ("re: quoting meta chars", re_backslash_metachars_test),
       ("re: quoting left paren", re_backslash_leftparen_test),
