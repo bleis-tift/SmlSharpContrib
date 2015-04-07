@@ -174,7 +174,7 @@ and parse((t :: ts), acc, e, gi) =
                              in
                                  parse(rest, (Or (parseCharSet (SOS :: charSet) []) :: acc), e, gi)
                              end
-            | LeftBrace => let fun collect1 ((Char #",") :: xs) [] l = (xs, NONE)
+            | LeftBrace => (let fun collect1 ((Char #",") :: xs) [] l = (xs, NONE)
                                  | collect1 ((Char #",") :: xs) acc' l = (case Int.fromString (String.implode (List.rev acc')) of
                                                                                 SOME l' =>  (xs, SOME l')
                                                                               | NONE => raise Parse)
@@ -196,6 +196,7 @@ and parse((t :: ts), acc, e, gi) =
                                  | (SOME l', NONE, a :: acc'') => parse(xs', (And (List.tabulate(l', (fn _ => a)))) :: acc'', e, gi)
                                  | _ => raise Parse
                            end
+                           handle Size => raise Parse)
             | Hat => parse(ts, (Item #"^") :: acc, e, gi)
             | RightParen=> parse(ts, (Item #")") :: acc, e, gi)
             | RightBrackt => parse(ts, (Item #"]") :: acc, e, gi)
