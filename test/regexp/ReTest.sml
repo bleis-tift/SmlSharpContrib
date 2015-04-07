@@ -18,13 +18,13 @@ fun assertParseError f =
 
 fun assertMatch expected actual =
   (assertSome actual;
-   assertEqual2Tuple (assertEqualInt, assertEqualInt) expected (Option.valOf actual))
+   assertEqual3Tuple (assertEqualInt, assertEqualInt, assertEqualArray(assertEqual2Tuple(assertEqualInt, assertEqualInt))) expected (Option.valOf actual))
 fun assertNotMatch actual =
   assertNone actual
 
 fun assertMatchString expected actual =
   (assertSome actual;
-   assertEqual2Tuple (assertEqualString, assertEqualStringList) expected (Option.valOf actual))
+   assertEqual2Tuple (assertEqualString, assertEqualArray assertEqualString) expected (Option.valOf actual))
 (* re *)
 
 fun re_simplest_test () =
@@ -69,42 +69,43 @@ fun re_parse_error_bar_test () =
    assertParseError (fn _ =>re "a(|b)"))
 
 (* match *)
+val emptyMatchGroup = Array.array(0, (0, 0))
 fun match_simplest_test () =
-  (assertMatch (0, 1) (match(re "a", "a", 0));
+  (assertMatch (0, 1, emptyMatchGroup) (match(re "a", "a", 0));
    assertNotMatch     (match(re "a", "b", 0));
-   assertMatch (1, 2) (match(re "a", "ba", 0)))
+   assertMatch (1, 2, emptyMatchGroup) (match(re "a", "ba", 0)))
 fun match_start_from_i_test () =
-  (assertMatch (0, 1) (match(re "a", "ab", 0));
+  (assertMatch (0, 1,emptyMatchGroup) (match(re "a", "ab", 0));
    assertNotMatch     (match(re "a", "ab", 1)))
 fun match_any_test () =
-  (assertMatch (0, 1) (match(re ".", "a", 0));
-   assertMatch (0, 1) (match(re ".", "b", 0));
-   assertMatch (0, 1) (match(re ".", ".", 0));
-   assertMatch (0, 1) (match(re ".", "*", 0));
-   assertMatch (0, 1) (match(re ".", "+", 0));
-   assertMatch (0, 1) (match(re ".", "?", 0));
-   assertMatch (0, 1) (match(re ".", "\\", 0));
-   assertMatch (0, 1) (match(re ".", "|", 0));
-   assertMatch (0, 1) (match(re ".", "(", 0));
-   assertMatch (0, 1) (match(re ".", ")", 0)))
+  (assertMatch (0, 1, emptyMatchGroup) (match(re ".", "a", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "b", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", ".", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "*", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "+", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "?", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "\\", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "|", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", "(", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re ".", ")", 0)))
 
 fun match_star_test () =
-  (assertMatch (0, 0) (match(re "a*", "", 0));
-   assertMatch (0, 1) (match(re "a*", "a", 0));
-   assertMatch (0, 2) (match(re "a*", "aa", 0));
-   assertMatch (0, 0) (match(re "a*", "b", 0));
-   assertMatch (0, 0) (match(re "a*", "ba", 0)))
+  (assertMatch (0, 0, emptyMatchGroup) (match(re "a*", "", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re "a*", "a", 0));
+   assertMatch (0, 2, emptyMatchGroup) (match(re "a*", "aa", 0));
+   assertMatch (0, 0, emptyMatchGroup) (match(re "a*", "b", 0));
+   assertMatch (0, 0, emptyMatchGroup) (match(re "a*", "ba", 0)))
 
 fun match_plus_test () =
   (assertNotMatch     (match(re "a+", "", 0));
-   assertMatch (0, 1) (match(re "a+", "a", 0));
-   assertMatch (0, 2) (match(re "a+", "aa", 0));
+   assertMatch (0, 1, emptyMatchGroup) (match(re "a+", "a", 0));
+   assertMatch (0, 2, emptyMatchGroup) (match(re "a+", "aa", 0));
    assertNotMatch     (match(re "a+", "b", 0));
-   assertMatch (1, 2) (match(re "a+", "ba", 0)))
+   assertMatch (1, 2, emptyMatchGroup) (match(re "a+", "ba", 0)))
 
 (* matchString *)
 fun matchString_simple_test () =
-  assertMatchString ("a", []) (matchString(re "a", "a", 0))
+  assertMatchString ("a", Array.array(0, "")) (matchString(re "a", "a", 0))
 (* matchstrings *)
 fun matchStrings_simple_test () =
   assertEqualStringList ["a", "a"] (matchStrings(re "a", "aa", 0))

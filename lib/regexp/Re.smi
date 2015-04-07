@@ -1,21 +1,24 @@
 _require "basis.smi"
 structure Re = struct
-datatype t
+datatype ast
   = Item of char
   | LineStart
   | LineEnd
-  | Or of t list
-  | And of t list
-  | Kleene of t
+  | Or of ast list
+  | And of ast list
+  | Kleene of ast
+  | Group of int * ast
   | Any
   | Empty
+
+type t = ast * int
 
 exception Lex
 exception Parse
 
 val re : string -> t
-val match : t * string * int ->  (int * int) option
-val matchString : t * string * int -> (string * string list) option
+val match : t * string * int ->  (int * int * ((int * int) array)) option
+val matchString : t * string * int -> (string * string array) option
 val matchStrings : t * string * int -> string list
 val doesMatch : t * string * int -> bool
 val split : t * string * int -> string list
