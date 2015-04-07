@@ -140,6 +140,18 @@ fun re_parse_error_char_set () =
    assertParseError (fn _ => re "][");
    assertParseError (fn _ => re "[z-a]")
   )
+fun re_parse_error_curly_brace () =
+  (assertParseError (fn _ => re "{0,1}");
+   assertParseError (fn _ => re "a{2,1}");
+   assertParseError (fn _ => re "a{-1,1}");
+   assertParseError (fn _ => re "a{a,1}");
+   assertParseError (fn _ => re "a{0,a}");
+   assertParseError (fn _ => re "a{a,b}");
+   assertParseError (fn _ => re "a{0-1}");
+   assertParseError (fn _ => re "a{,a}");
+   assertParseError (fn _ => re "a{a,}");
+   assertParseError (fn _ => re "a{,}")
+  )
 (* match *)
 val emptyMatchGroup = Array.array(0, (0, 0))
 fun match_simplest_test () =
@@ -213,7 +225,7 @@ fun suite _ =Test.labelTests [
       ("re: parse error against illeagal #\"|\"", re_parse_error_bar_test),
       ("re: parse error against unmatching parens", re_parse_error_paren),
       ("re: parse error against charset", re_parse_error_char_set),
-
+      ("re: parse error against curly braces", re_parse_error_curly_brace),
       ("match: simple string", match_simplest_test),
       ("match: match start from non-zero", match_start_from_i_test),
       ("match: /./", match_any_test),
