@@ -193,7 +193,7 @@ and parse((t :: ts), acc, e, gi) =
                                    (SOME l', SOME r', a :: acc'') => parse(xs', (And  ((List.tabulate(l', (fn _ => a))) @
                                                                                        [(And (List.tabulate((r' - l'), (fn _ => Or [a, Empty]))))])) :: acc'', e, gi)
                                  | (NONE, SOME r', a :: acc'') => parse(xs', (And (List.tabulate(r', (fn _ => Or [a, Empty])))) :: acc'', e, gi)
-                                 | (SOME l', NONE, a :: acc'') => parse(xs', (And (List.tabulate(l', (fn _ => a)))) :: acc'', e, gi)
+                                 | (SOME l', NONE, a :: acc'') => parse(xs', Kleene a :: (And (List.tabulate(l', (fn _ => a)))) :: acc'', e, gi)
                                  | _ => raise Parse
                            end
                            handle Size => raise Parse)
