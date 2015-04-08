@@ -204,6 +204,24 @@ fun match_lineend_test () =
    assertNotMatch                        (match(re "$a", "a", 0));
    assertMatch (1, 3, Array.fromList []) (match(re "$a", "b$a", 0));
    assertMatch (0, 1, Array.fromList []) (match(re "a$", "a\nb", 0)))
+fun match_charset_test () =
+  (assertMatch (0, 1, Array.fromList []) (match(re "[a]", "a", 0));
+   assertNotMatch                        (match(re "[a]", "b", 0));
+   assertMatch (0, 1, Array.fromList []) (match(re "[ab]", "a", 0));
+   assertMatch (0, 1, Array.fromList []) (match(re "[ab]", "b", 0));
+   assertMatch (0, 6, Array.fromList []) (match(re "[ab]+", "abbaab", 0));
+   assertMatch (0, 3, Array.fromList []) (match(re "[a-c]+", "abc", 0));
+   assertNotMatch                        (match(re "[a-c]+", "-", 0));
+   assertMatch (0, 1, Array.fromList []) (match(re "[a-]", "-", 0));
+   assertMatch (0, 1, Array.fromList []) (match(re "[-a]", "-", 0));
+   assertMatch (3, 4, Array.fromList []) (match(re "[^abc]", "abcd", 0));
+   assertMatch (3, 4, Array.fromList []) (match(re "[^a-c]", "abcd", 0));
+   assertNotMatch                        (match(re "[^a-c]", "abc", 0));
+   assertMatch (1, 2, Array.fromList []) (match(re "[^a-]", "-b", 0));
+   assertMatch (1, 2, Array.fromList []) (match(re "[^-a]", "-b", 0))
+   
+  )
+  
 (* matchString *)
 fun matchString_simple_test () =
   assertMatchString ("a", Array.fromList []) (matchString(re "a", "a", 0))
@@ -251,6 +269,7 @@ fun suite _ =Test.labelTests [
       ("match: /a?/", match_option_test),
       ("match: /^/", match_linestart_test),
       ("match: /$/", match_lineend_test),
+      ("match: /[]/", match_charset_test),
       
       ("matchString: simple string", matchString_simple_test),
 
