@@ -259,7 +259,7 @@ fun match_aux(r, rest, str, i, gs) =
                      then Success(i, i, gs)
                      else Continue)
                     handle Subscript => Fail)
-    | LineEnd => ((if i = (String.size str) orelse String.sub(str, i + 1) = #"\n"
+    | LineEnd => ((if i = (String.size str) orelse String.sub(str, i) = #"\n"
                    then Success(i, i, gs)
                    else Continue)
                   handle Subscript => Fail)
