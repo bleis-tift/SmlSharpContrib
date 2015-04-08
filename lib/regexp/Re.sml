@@ -263,7 +263,9 @@ fun match_aux(r, rest, str, i, gs) =
                    then Success(i, i, gs)
                    else Continue)
                   handle Subscript => Fail)
-    | Or [] => Continue
+    | Or [] => if i = (String.size str)
+               then Fail
+               else Continue
     | Or (x :: xs) => (case match_aux(x, rest, str, i, gs) of
                            Success(s, e, gs) => (case match_aux(rest, Empty, str, e, gs) of (* backtrack *)
                                                  Success _ => Success(s, e, gs)
