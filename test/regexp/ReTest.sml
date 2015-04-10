@@ -116,7 +116,17 @@ fun re_curly_brace_test () =
    assertWork "(a){10,}";
    assertWork "(a|b){10,}";
    assertWork "[a-b]{10,}")
-
+fun re_bar_test () =
+  (assertWork "a|b";
+   assertWork "ab|ac";
+   assertWork "a|b|c";
+   assertWork "a|b|c|d";
+   assertWork "a|b*";
+   assertWork "a*|b";
+   assertWork "a*|b*";
+   assertWork "a?|b";
+   assertWork "a|b?";
+   assertWork "a[a-c]|b")
 fun re_lex_error_backslash_test () =
   assertLexError "\\"
 fun re_parse_error_star_no_leading_char_test () =
@@ -274,6 +284,7 @@ fun suite _ =Test.labelTests [
       ("re: simple quote", re_backslash_test),
       ("re: quoting meta chars", re_backslash_metachars_test),
       ("re: quoting left paren", re_backslash_leftparen_test),
+      ("re: bar", re_bar_test),
       ("re: lex error against last #\"\\\"", re_lex_error_backslash_test),
       ("re: parse error against #\"*\" without any leading chars", re_parse_error_star_no_leading_char_test),
       ("re: parse error against #\"+\" without any leading chars", re_parse_error_plus_no_leading_char_test),
