@@ -4,16 +4,16 @@ open SMLUnit
 open Re
 open Assert
 
-fun assertWork f =
-  (f (); assert "function work" true)
+fun assertWork str =
+  (re str; assert "function work" true)
   handle a => fail "function didn't work"
 
-fun assertLexError f =
-  (f (); fail "Exception `Re.Lex` wasn't raised")
+fun assertLexError str =
+  (re str; fail "Exception `Re.Lex` wasn't raised")
   handle a => assertEqualExceptionName Lex a
 
-fun assertParseError f =
-  (f (); fail "Exception `Re.Parse` wasn't raised")
+fun assertParseError str =
+  (re str; fail "Exception `Re.Parse` wasn't raised")
   handle a => assertEqualExceptionName Parse a
 
 fun assertMatch (s, e, gs) actual =
@@ -28,132 +28,132 @@ fun assertMatchString expected actual =
 (* re *)
 
 fun re_simplest_test () =
-  assertWork (fn _ => re "a")
+  assertWork "a"
 fun re_paren_test () =
-  (assertWork (fn _ => re "(a)");
-   assertWork (fn _ => re "(a)(b)");
-   assertWork (fn _ => re "((a)b)"))
+  (assertWork "(a)";
+   assertWork "(a)(b)";
+   assertWork "((a)b)")
 fun re_charset_test () =
-  (assertWork (fn _ => re "[a]");
-   assertWork (fn _ => re "[ab]");
-   assertWork (fn _ => re "[a]b");
-   assertWork (fn _ => re "a[b]");
-   assertWork (fn _ => re "([a])");
-   assertWork (fn _ => re "[(]");
-   assertWork (fn _ => re "[)]");
-   assertWork (fn _ => re "[{]");
-   assertWork (fn _ => re "[}]");
-   assertWork (fn _ => re "[[]");
-   assertWork (fn _ => re "[]]");
-   assertWork (fn _ => re "[a-c]");
-   assertWork (fn _ => re "[a-a]");
-   assertWork (fn _ => re "[a-]");
-   assertWork (fn _ => re "[-a]");
-   assertWork (fn _ => re "[\\a]");
-   assertWork (fn _ => re "[\\\\a]");
-   assertWork (fn _ => re "[|]");
-   assertWork (fn _ => re "[a^]");
-   assertWork (fn _ => re "[-^]"))
+  (assertWork "[a]";
+   assertWork "[ab]";
+   assertWork "[a]b";
+   assertWork "a[b]";
+   assertWork "([a])";
+   assertWork "[(]";
+   assertWork "[)]";
+   assertWork "[{]";
+   assertWork "[}]";
+   assertWork "[[]";
+   assertWork "[]]";
+   assertWork "[a-c]";
+   assertWork "[a-a]";
+   assertWork "[a-]";
+   assertWork "[-a]";
+   assertWork "[\\a]";
+   assertWork "[\\\\a]";
+   assertWork "[|]";
+   assertWork "[a^]";
+   assertWork "[-^]")
 fun re_charset_complement_test () =
-  (assertWork (fn _ => re "[^a]");
-   assertWork (fn _ => re "[^ab]");
-   assertWork (fn _ => re "[^a-c]");
-   assertWork (fn _ => re "[^a-a]");
-   assertWork (fn _ => re "[^!]");
-   assertWork (fn _ => re "[^|]");
-   assertWork (fn _ => re "[^{]");
-   assertWork (fn _ => re "[^}]");
-   assertWork (fn _ => re "[^(]");
-   assertWork (fn _ => re "[^)]");
-   assertWork (fn _ => re "[^[]");
-   assertWork (fn _ => re "[^]]");
-   assertWork (fn _ => re "[^\\a]");
-   assertWork (fn _ => re "[^\\\\a]");
-   assertWork (fn _ => re "[^-]");
-   assertWork (fn _ => re "[^-a]");
-   assertWork (fn _ => re "[^,]"))
+  (assertWork "[^a]";
+   assertWork "[^ab]";
+   assertWork "[^a-c]";
+   assertWork "[^a-a]";
+   assertWork "[^!]";
+   assertWork "[^|]";
+   assertWork "[^{]";
+   assertWork "[^}]";
+   assertWork "[^(]";
+   assertWork "[^)]";
+   assertWork "[^[]";
+   assertWork "[^]]";
+   assertWork "[^\\a]";
+   assertWork "[^\\\\a]";
+   assertWork "[^-]";
+   assertWork "[^-a]";
+   assertWork "[^,]")
 fun re_backslash_test () =
-  assertWork (fn _ => re "a\\b")
+  assertWork "a\\b"
 fun re_backslash_metachars_test () =
-  (assertWork (fn _ => re "\\.");
-   assertWork (fn _ => re "\\*");
-   assertWork (fn _ => re "\\+");
-   assertWork (fn _ => re "\\?"))
+  (assertWork "\\.";
+   assertWork "\\*";
+   assertWork "\\+";
+   assertWork "\\?")
 fun re_backslash_leftparen_test () =
-  (assertWork (fn _ => re "a\\(b");
-   assertWork (fn _ => re "a\\(()b");
-   assertWork (fn _ => re "a()\\(b");
-   assertWork (fn _ => re "a(\\()b"))
+  (assertWork "a\\(b";
+   assertWork "a\\(()b";
+   assertWork "a()\\(b";
+   assertWork "a(\\()b")
 fun re_backslash_rightparen_test () =
-  (assertWork (fn _ => re "a\\)b");
-   assertWork (fn _ => re "a\\)()b");
-   assertWork (fn _ => re "a()\\)b");
-   assertWork (fn _ => re "a(\\))b"))
+  (assertWork "a\\)b";
+   assertWork "a\\)()b";
+   assertWork "a()\\)b";
+   assertWork "a(\\))b")
 fun re_linestart_test () =
-  (assertWork (fn _ => re "^");
-   assertWork (fn _ => re "^a");
-   assertWork (fn _ => re "a^");
-   assertWork (fn _ => re "^[^a]");
-   assertWork (fn _ => re "\\^");
-   assertWork (fn _ => re "a^");
-   assertWork (fn _ => re "(^)"))
+  (assertWork "^";
+   assertWork "^a";
+   assertWork "a^";
+   assertWork "^[^a]";
+   assertWork "\\^";
+   assertWork "a^";
+   assertWork "(^)")
 fun re_lineend_test () =
-  (assertWork (fn _ => re "$");
-   assertWork (fn _ => re "\\$");
-   assertWork (fn _ => re "$a");
-   assertWork (fn _ => re "^$");
-   assertWork (fn _ => re "[$]");
-   assertWork (fn _ => re "($)"))
+  (assertWork "$";
+   assertWork "\\$";
+   assertWork "$a";
+   assertWork "^$";
+   assertWork "[$]";
+   assertWork "($)")
 fun re_curly_brace_test () =
-  (assertWork (fn _ => re "a{0,1}");
-   assertWork (fn _ => re "a{0,0}");
-   assertWork (fn _ => re "a{0,10}");
-   assertWork (fn _ => re "a{10,11}");
-   assertWork (fn _ => re "a{,1}");
-   assertWork (fn _ => re "a{0,10}");
-   assertWork (fn _ => re "a{0,}");
-   assertWork (fn _ => re "a{10,}");
-   assertWork (fn _ => re "(a){10,}");
-   assertWork (fn _ => re "(a|b){10,}");
-   assertWork (fn _ => re "[a-b]{10,}"))
+  (assertWork "a{0,1}";
+   assertWork "a{0,0}";
+   assertWork "a{0,10}";
+   assertWork "a{10,11}";
+   assertWork "a{,1}";
+   assertWork "a{0,10}";
+   assertWork "a{0,}";
+   assertWork "a{10,}";
+   assertWork "(a){10,}";
+   assertWork "(a|b){10,}";
+   assertWork "[a-b]{10,}")
 
 fun re_lex_error_backslash_test () =
-  assertLexError (fn _ => re "\\")
+  assertLexError "\\"
 fun re_parse_error_star_no_leading_char_test () =
-  assertParseError (fn _ => re "*")
+  assertParseError "*"
 fun re_parse_error_plus_no_leading_char_test () =
-  assertParseError (fn _ => re "+")
+  assertParseError "+"
 fun re_parse_error_question_no_leading_char_test () =
-  assertParseError (fn _ => re "?")
+  assertParseError "?"
 fun re_parse_error_bar_test () =
-  (assertParseError (fn _ => re "|");
-   assertParseError (fn _ => re "a|");
-   assertParseError (fn _ => re "|b");
-   assertParseError (fn _ => re "a(|)b");
-   assertParseError (fn _ => re "(a|)b");
-   assertParseError (fn _ => re "a(|b)"))
+  (assertParseError "|";
+   assertParseError "a|";
+   assertParseError "|b";
+   assertParseError "a(|)b";
+   assertParseError "(a|)b";
+   assertParseError "a(|b)")
 fun re_parse_error_paren () =
-  (assertParseError (fn _ => re "(");
-   assertParseError (fn _ => re ")(");
-   assertParseError (fn _ => re "(\\)");
-   assertParseError (fn _ => re "([)]"))
+  (assertParseError "(";
+   assertParseError ")(";
+   assertParseError "(\\)";
+   assertParseError "([)]")
 fun re_parse_error_char_set () =
-  (assertParseError (fn _ => re "[");
-   assertParseError (fn _ => re "[\\]");
-   assertParseError (fn _ => re "][");
-   assertParseError (fn _ => re "[z-a]")
+  (assertParseError "[";
+   assertParseError "[\\]";
+   assertParseError "][";
+   assertParseError "[z-a]"
   )
 fun re_parse_error_curly_brace () =
-  (assertParseError (fn _ => re "{0,1}");
-   assertParseError (fn _ => re "a{2,1}");
-   assertParseError (fn _ => re "a{-1,1}");
-   assertParseError (fn _ => re "a{a,1}");
-   assertParseError (fn _ => re "a{0,a}");
-   assertParseError (fn _ => re "a{a,b}");
-   assertParseError (fn _ => re "a{0-1}");
-   assertParseError (fn _ => re "a{,a}");
-   assertParseError (fn _ => re "a{a,}");
-   assertParseError (fn _ => re "a{,}")
+  (assertParseError "{0,1}";
+   assertParseError "a{2,1}";
+   assertParseError "a{-1,1}";
+   assertParseError "a{a,1}";
+   assertParseError "a{0,a}";
+   assertParseError "a{a,b}";
+   assertParseError "a{0-1}";
+   assertParseError "a{,a}";
+   assertParseError "a{a,}";
+   assertParseError "a{,}"
   )
 (* match *)
 fun match_simplest_test () =
