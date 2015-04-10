@@ -126,7 +126,13 @@ fun re_bar_test () =
    assertWork "a*|b*";
    assertWork "a?|b";
    assertWork "a|b?";
-   assertWork "a[a-c]|b")
+   assertWork "a[a-c]|b";
+   assertWork "|";
+   assertWork "a|";
+   assertWork "|b";
+   assertWork "a(|)b";
+   assertWork "(a|)b";
+   assertWork "a(|b)")
 fun re_lex_error_backslash_test () =
   assertLexError "\\"
 fun re_parse_error_star_no_leading_char_test () =
