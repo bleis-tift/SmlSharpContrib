@@ -161,8 +161,7 @@ and parse((t :: ts), acc, e, gi) =
                              [] => raise Parse
                            | x :: xs => parse(ts, Or(x :: [Empty]) :: xs, e, gi))
             | Bar => (case (parse(ts, [], e, gi), acc) of
-                          (_, []) => raise Parse
-                        | ((result, rest, gi'), acc') => (Or([And(List.rev acc'), result]), rest, gi'))
+                          ((result, rest, gi'), acc') => (Or([And(List.rev acc'), result]), rest, gi'))
             | LeftParen => let val (result, rest, gi') = parse(ts, [], RightParen, gi + 1)
                            in  parse(rest, (Group(gi, result)) :: acc, e, gi') end
             | LeftBracket => let fun collect (RightBrackt :: xs) acc' = (List.rev acc', xs)
