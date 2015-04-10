@@ -246,6 +246,18 @@ fun match_curlybraces_test () =
    (assertMatch (0, 2, []) (match(re "ab{1,2}", "abab", 0)));
    (assertMatch (0, 1, []) (match(re "[ab]{,2}", "a", 0)))
   )
+fun match_bar_test () =
+  ((assertMatch (0, 1, []) (match(re "a|b", "a", 0)));
+   (assertMatch (0, 1, []) (match(re "a|b", "b", 0)));
+   (assertMatch (0, 2, []) (match(re "ab|cd", "ab", 0)));
+   (assertMatch (0, 2, []) (match(re "ab|cd", "cd", 0)));
+   (assertMatch (0, 2, []) (match(re "ab|cd|ef", "ab", 0)));
+   (assertMatch (0, 2, []) (match(re "ab|cd|ef", "cd", 0)));
+   (assertMatch (0, 2, []) (match(re "ab|cd|ef", "ef", 0)));
+   (assertMatch (0, 2, []) (match(re "a.|cd|ef", "ab", 0)));
+   (assertMatch (0, 0, []) (match(re "a*|cd|ef", "b", 0)));
+   (assertMatch (0, 3, []) (match(re "ab|cd{1,2}|ef", "cdd", 0)))
+  )
 (* matchString *)
 fun matchString_simple_test () =
   assertMatchString ("a", Array.fromList []) (matchString(re "a", "a", 0))
@@ -295,6 +307,7 @@ fun suite _ =Test.labelTests [
       ("match: /$/", match_lineend_test),
       ("match: /[]/", match_charset_test),
       ("match: /{,}/", match_curlybraces_test),
+      ("match: /|/", match_bar_test),
       
       ("matchString: simple string", matchString_simple_test),
 
