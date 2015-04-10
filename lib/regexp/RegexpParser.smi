@@ -1,0 +1,21 @@
+_require "basis.smi"
+structure RegexpParser = struct
+datatype ast
+  = Item of char
+  | LineStart
+  | LineEnd
+  | Or of ast list
+  | And of ast list
+  | Kleene of ast
+  | Group of int * ast
+  | Any
+  | Empty
+
+type t = ast * int
+
+exception Lex
+exception Parse
+
+val re : string -> t
+end
+

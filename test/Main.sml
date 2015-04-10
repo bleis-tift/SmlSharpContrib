@@ -9,7 +9,8 @@ val suites = SMLUnit.Test.TestList [
   ParserTest.suite (),
   JsonDecoderTest.suite (),
   JsonEncoderTest.suite (),
-  ReTest. suite ()
+  RegexpParserTest.suite (),
+  RegexpTest.suite ()
 ]
 
 val () =

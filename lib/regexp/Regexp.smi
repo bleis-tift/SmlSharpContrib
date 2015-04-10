@@ -1,0 +1,12 @@
+_require "basis.smi"
+_require "RegexpParser.smi"
+structure Regexp = struct
+val match : RegexpParser.t * string * int ->  (int * int * ((int * int) array)) option
+val matchString : RegexpParser.t * string * int -> (string * string array) option
+val matchStrings : RegexpParser.t * string * int -> string list
+val doesMatch : RegexpParser.t * string * int -> bool
+val split : RegexpParser.t * string * int -> string list
+val replace : RegexpParser.t * string * int * string-> string
+val replaceAll : RegexpParser.t * string * int * string -> string
+end
+
