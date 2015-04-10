@@ -73,7 +73,7 @@ exception Lex
 
 fun lex str =
   let
-      fun loop [] = [EOS]
+      fun loop [] = []
         | loop (c :: cs) = 
           case c of
               #"." => Dot :: loop cs
@@ -85,17 +85,20 @@ fun lex str =
             | #"?" => Option :: loop cs
             | #"\\" => (case cs of
                             [] => raise Lex
-                          | c' :: cs' =>  Char c' :: loop cs')
+                          | c' :: cs' => Char c' :: loop cs')
             | #"(" => LeftParen :: loop cs
             | #")" => RightParen :: loop cs
             | #"[" => LeftBracket :: loop cs
             | #"]" => RightBrackt :: loop cs
             | #"{" => LeftBrace :: loop cs
             | #"}" => RightBrace :: loop cs
-            | _  => Char c :: loop cs
-                                   
+            | _    => Char c :: loop cs
+      fun addSOS (LeftParen, SOS::xs) = SOS::LeftParen::SOS::xs
+        | addSOS (x, xs) = x :: xs
+      fun addEOS (RightParen, EOS::xs) = EOS::RightParen::EOS::xs
+        | addEOS (x, xs) = x :: xs
   in
-      SOS :: (loop (String.explode str))
+      List.foldl addEOS [EOS] (List.foldl addSOS [SOS] (loop(String.explode str)))
   end
 
 
@@ -148,17 +151,20 @@ and parse((t :: ts), acc, e, gi) =
                         | _ => parse(ts, acc, e, gi))
             | Char c => parse(ts, (Item c) :: acc, e, gi)
             | Dollar => (case ts of
-                             [EOS] => parse(ts, LineEnd :: acc, e, gi)
+                             EOS :: ts' => parse(EOS :: ts', LineEnd :: acc, e, gi)
                            | _ => parse(ts, (Item #"$") :: acc, e, gi))
             | Dot => parse(ts, Any :: acc, e, gi)
             | Star => (case acc of
                            [] => raise Parse
+                         | Group(i, x) :: xs  => parse(ts, Group(i, Kleene x) :: xs, e, gi)
                          | x :: xs => parse(ts, Kleene x :: xs, e, gi))
             | Plus => (case acc of
                            [] => raise Parse
+                         | Group(i, x) :: xs => parse(ts, Group(i, And(x :: [Kleene x])) :: xs, e, gi)
                          | x :: xs => parse(ts, And(x :: [Kleene x]) :: xs, e, gi))
             | Option => (case acc of
                              [] => raise Parse
+                           | Group(i, x) :: xs => parse(ts, Group(i, Or(x :: [Empty])) :: xs, e, gi)
                            | x :: xs => parse(ts, Or(x :: [Empty]) :: xs, e, gi))
             | Bar => (case (parse(ts, [], e, gi), acc) of
                           ((result, rest, gi'), acc') => (Or([And(List.rev acc'), result]), rest, gi'))
@@ -189,10 +195,14 @@ and parse((t :: ts), acc, e, gi) =
                                val (xs', r) = collect2 xs [] NONE
                            in
                                case (l, r, acc) of
-                                   (SOME l', SOME r', a :: acc'') => parse(xs', (And  ((List.tabulate(l', (fn _ => a))) @
+                                   (SOME l', SOME r', Group(i, a) :: acc'') => parse(xs', Group(i, And ((List.tabulate(l', (fn _ => a))) @
                                                                                        [(And (List.tabulate((r' - l'), (fn _ => Or [a, Empty]))))])) :: acc'', e, gi)
+                                 | (SOME l', SOME r', a :: acc'') => parse(xs', (And ((List.tabulate(l', (fn _ => a))) @
+                                                                                       [(And (List.tabulate((r' - l'), (fn _ => Or [a, Empty]))))])) :: acc'', e, gi)
+                                 | (NONE, SOME r', Group(i, a) :: acc'') => parse(xs', Group(i, And (List.tabulate(r', (fn _ => Or [a, Empty])))) :: acc'', e, gi)
                                  | (NONE, SOME r', a :: acc'') => parse(xs', (And (List.tabulate(r', (fn _ => Or [a, Empty])))) :: acc'', e, gi)
-                                 | (SOME l', NONE, a :: acc'') => parse(xs', Kleene a :: (And (List.tabulate(l', (fn _ => a)))) :: acc'', e, gi)
+                                 | (SOME l', NONE, Group(i, a) :: acc'') => parse(xs',  Group(i, And (Kleene a :: List.tabulate(l', (fn _ => a)))) :: acc'', e, gi)
+                                 | (SOME l', NONE, a :: acc'') => parse(xs', And(Kleene a :: List.tabulate(l', (fn _ => a))) :: acc'', e, gi)
                                  | _ => raise Parse
                            end
                            handle Size => raise Parse)
@@ -200,6 +210,7 @@ and parse((t :: ts), acc, e, gi) =
             | RightParen=> parse(ts, (Item #")") :: acc, e, gi)
             | RightBrackt => parse(ts, (Item #"]") :: acc, e, gi)
             | RightBrace => parse(ts, (Item #"}") :: acc, e, gi)
+            | EOS => parse(ts, acc, e, gi)
             | _ =>  raise Parse)
   | parse _ =  raise Parse
 
