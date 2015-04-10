@@ -135,13 +135,6 @@ fun re_parse_error_plus_no_leading_char_test () =
   assertParseError "+"
 fun re_parse_error_question_no_leading_char_test () =
   assertParseError "?"
-fun re_parse_error_bar_test () =
-  (assertParseError "|";
-   assertParseError "a|";
-   assertParseError "|b";
-   assertParseError "a(|)b";
-   assertParseError "(a|)b";
-   assertParseError "a(|b)")
 fun re_parse_error_paren () =
   (assertParseError "(";
    assertParseError ")(";
@@ -289,7 +282,6 @@ fun suite _ =Test.labelTests [
       ("re: parse error against #\"*\" without any leading chars", re_parse_error_star_no_leading_char_test),
       ("re: parse error against #\"+\" without any leading chars", re_parse_error_plus_no_leading_char_test),
       ("re: parse error against #\"?\" without any leading chars", re_parse_error_question_no_leading_char_test),
-      ("re: parse error against illeagal #\"|\"", re_parse_error_bar_test),
       ("re: parse error against unmatching parens", re_parse_error_paren),
       ("re: parse error against charset", re_parse_error_char_set),
       ("re: parse error against curly braces", re_parse_error_curly_brace),
