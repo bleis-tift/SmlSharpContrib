@@ -318,7 +318,7 @@ fun replaceAll_simple_test () =
   (assertEqualString "b" (replaceAll(re"a", "a", 0, "b"));
    assertEqualString "bb" (replaceAll(re"a+", "aaab", 0, "b"));
    assertEqualString "bbb" (replaceAll(re"a+", "aaabaa", 0, "b"))
-)
+  )
       
 
 fun suite _ =Test.labelTests [
