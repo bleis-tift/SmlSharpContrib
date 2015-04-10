@@ -16,9 +16,9 @@ fun assertParseError f =
   (f (); fail "Exception `Re.Parse` wasn't raised")
   handle a => assertEqualExceptionName Parse a
 
-fun assertMatch expected actual =
+fun assertMatch (s, e, gs) actual =
   (assertSome actual;
-   assertEqual3Tuple (assertEqualInt, assertEqualInt, assertEqualArray(assertEqual2Tuple(assertEqualInt, assertEqualInt))) expected (Option.valOf actual))
+   assertEqual3Tuple (assertEqualInt, assertEqualInt, assertEqualArray(assertEqual2Tuple(assertEqualInt, assertEqualInt))) (s, e, Array.fromList gs) (Option.valOf actual))
 fun assertNotMatch actual =
   assertNone actual
 
@@ -157,85 +157,91 @@ fun re_parse_error_curly_brace () =
   )
 (* match *)
 fun match_simplest_test () =
-  (assertMatch (0, 1, Array.fromList []) (match(re "a", "a", 0));
-   assertNotMatch     (match(re "a", "b", 0));
-   assertMatch (1, 2, Array.fromList []) (match(re "a", "ba", 0)))
+  (assertMatch (0, 1,  []) (match(re "a", "a", 0));
+   assertMatch (1, 3,  []) (match(re "ab", "aab", 0));
+   assertNotMatch          (match(re "a", "b", 0));
+   assertNotMatch          (match(re "abcd", ".abce", 0));
+   assertMatch (1, 2,  []) (match(re "a", "ba", 0)))
 fun match_start_from_i_test () =
-  (assertMatch (0, 1, Array.fromList []) (match(re "a", "ab", 0));
-   assertNotMatch     (match(re "a", "ab", 1)))
+  (assertMatch (0, 1,  []) (match(re "a", "ab", 0));
+   assertNotMatch          (match(re "a", "ab", 1));
+   assertMatch (6, 10, []) (match(re "abcd", "aababcabcdabcaba", 0));
+   assertMatch (6, 10, []) (match(re "abcd", "aababcabcdabcaba", 5));
+   assertMatch (6, 10, []) (match(re "abcd", "aababcabcdabcaba", 6));
+   assertNotMatch                         (match(re "abcd", "aababcabcdabcaba", 7)))
 fun match_any_test () =
-  (assertMatch (0, 1, Array.fromList []) (match(re ".", "a", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "b", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", ".", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "*", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "+", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "?", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "\\", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "|", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", "(", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re ".", ")", 0)))
+  (assertMatch (0, 1, []) (match(re ".", "a", 0));
+   assertMatch (0, 1, []) (match(re ".", "b", 0));
+   assertMatch (0, 1, []) (match(re ".", ".", 0));
+   assertMatch (0, 1, []) (match(re ".", "*", 0));
+   assertMatch (0, 1, []) (match(re ".", "+", 0));
+   assertMatch (0, 1, []) (match(re ".", "?", 0));
+   assertMatch (0, 1, []) (match(re ".", "\\", 0));
+   assertMatch (0, 1, []) (match(re ".", "|", 0));
+   assertMatch (0, 1, []) (match(re ".", "(", 0));
+   assertMatch (0, 1, []) (match(re ".", ")", 0)))
 
 fun match_star_test () =
-  (assertMatch (0, 0, Array.fromList []) (match(re "a*", "", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "a*", "a", 0));
-   assertMatch (0, 2, Array.fromList []) (match(re "a*", "aa", 0));
-   assertMatch (0, 0, Array.fromList []) (match(re "a*", "b", 0));
-   assertMatch (0, 0, Array.fromList []) (match(re "a*", "ba", 0)))
+  (assertMatch (0, 0, []) (match(re "a*", "", 0));
+   assertMatch (0, 1, []) (match(re "a*", "a", 0));
+   assertMatch (0, 2, []) (match(re "a*", "aa", 0));
+   assertMatch (0, 0, []) (match(re "a*", "b", 0));
+   assertMatch (0, 0, []) (match(re "a*", "ba", 0)))
 
 fun match_plus_test () =
   (assertNotMatch     (match(re "a+", "", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "a+", "a", 0));
-   assertMatch (0, 2, Array.fromList []) (match(re "a+", "aa", 0));
+   assertMatch (0, 1, []) (match(re "a+", "a", 0));
+   assertMatch (0, 2, []) (match(re "a+", "aa", 0));
    assertNotMatch     (match(re "a+", "b", 0));
-   assertMatch (1, 2, Array.fromList []) (match(re "a+", "ba", 0)))
+   assertMatch (1, 2, []) (match(re "a+", "ba", 0)))
 fun match_option_test () =
-  (assertMatch (0, 1, Array.fromList []) (match(re "a?", "a", 0));
-   assertMatch (0, 0, Array.fromList []) (match(re "a?", "", 0));
-   assertMatch (0, 0, Array.fromList []) (match(re "a?", "ba", 0)))
+  (assertMatch (0, 1, []) (match(re "a?", "a", 0));
+   assertMatch (0, 0, []) (match(re "a?", "", 0));
+   assertMatch (0, 0, []) (match(re "a?", "ba", 0)))
 fun match_linestart_test () =
-  (assertMatch (0, 0, Array.fromList []) (match(re "^", "", 0));
-   assertMatch (0, 0, Array.fromList []) (match(re "^", "a", 0));
-   assertNotMatch                        (match(re "a^", "a", 0));
-   assertMatch (0, 2, Array.fromList []) (match(re "a^", "a^b", 0));
-   assertMatch (2, 3, Array.fromList []) (match(re "^a", "b\na", 0)))
+  (assertMatch (0, 0, []) (match(re "^", "", 0));
+   assertMatch (0, 0, []) (match(re "^", "a", 0));
+   assertNotMatch         (match(re "a^", "a", 0));
+   assertMatch (0, 2, []) (match(re "a^", "a^b", 0));
+   assertMatch (2, 3, []) (match(re "^a", "b\na", 0)))
 fun match_lineend_test () =
-  (assertMatch (0, 0, Array.fromList []) (match(re "$", "", 0));
-   assertMatch (1, 1, Array.fromList []) (match(re "$", "a", 0));
-   assertNotMatch                        (match(re "$a", "a", 0));
-   assertMatch (1, 3, Array.fromList []) (match(re "$a", "b$a", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "a$", "a\nb", 0)))
+  (assertMatch (0, 0, []) (match(re "$", "", 0));
+   assertMatch (1, 1, []) (match(re "$", "a", 0));
+   assertNotMatch         (match(re "$a", "a", 0));
+   assertMatch (1, 3, []) (match(re "$a", "b$a", 0));
+   assertMatch (0, 1, []) (match(re "a$", "a\nb", 0)))
 fun match_charset_test () =
-  (assertMatch (0, 1, Array.fromList []) (match(re "[a]", "a", 0));
-   assertNotMatch                        (match(re "[a]", "b", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "[ab]", "a", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "[ab]", "b", 0));
-   assertMatch (0, 6, Array.fromList []) (match(re "[ab]+", "abbaab", 0));
-   assertMatch (0, 3, Array.fromList []) (match(re "[a-c]+", "abc", 0));
-   assertNotMatch                        (match(re "[a-c]+", "-", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "[a-]", "-", 0));
-   assertMatch (0, 1, Array.fromList []) (match(re "[-a]", "-", 0));
-   assertMatch (3, 4, Array.fromList []) (match(re "[^abc]", "abcd", 0));
-   assertMatch (3, 4, Array.fromList []) (match(re "[^a-c]", "abcd", 0));
-   assertNotMatch                        (match(re "[^a-c]", "abc", 0));
-   assertMatch (1, 2, Array.fromList []) (match(re "[^a-]", "-b", 0));
-   assertMatch (1, 2, Array.fromList []) (match(re "[^-a]", "-b", 0))
+  (assertMatch (0, 1, []) (match(re "[a]", "a", 0));
+   assertNotMatch         (match(re "[a]", "b", 0));
+   assertMatch (0, 1, []) (match(re "[ab]", "a", 0));
+   assertMatch (0, 1, []) (match(re "[ab]", "b", 0));
+   assertMatch (0, 6, []) (match(re "[ab]+", "abbaab", 0));
+   assertMatch (0, 3, []) (match(re "[a-c]+", "abc", 0));
+   assertNotMatch         (match(re "[a-c]+", "-", 0));
+   assertMatch (0, 1, []) (match(re "[a-]", "-", 0));
+   assertMatch (0, 1, []) (match(re "[-a]", "-", 0));
+   assertMatch (3, 4, []) (match(re "[^abc]", "abcd", 0));
+   assertMatch (3, 4, []) (match(re "[^a-c]", "abcd", 0));
+   assertNotMatch         (match(re "[^a-c]", "abc", 0));
+   assertMatch (1, 2, []) (match(re "[^a-]", "-b", 0));
+   assertMatch (1, 2, []) (match(re "[^-a]", "-b", 0))
   )
 fun match_curlybraces_test () =
-  ((assertMatch (0, 2, Array.fromList []) (match(re "a{0,2}", "aaa", 0)));
-   (assertMatch (0, 2, Array.fromList []) (match(re "a{0,2}", "aaaa", 0)));
-   (assertMatch (0, 1, Array.fromList []) (match(re "a{0,2}", "a", 0)));
-   (assertMatch (0, 1, Array.fromList []) (match(re "a{1,2}", "a", 0)));
-   (assertNotMatch                        (match(re "a{2,2}", "a", 0)));
-   (assertMatch (0, 1, Array.fromList []) (match(re "a{1,}", "a", 0)));
-   (assertMatch (0, 2, Array.fromList []) (match(re "a{1,}", "aa", 0)));
-   (assertMatch (0, 5, Array.fromList []) (match(re "a{1,}", "aaaaa", 0)));
-   (assertMatch (0, 0, Array.fromList []) (match(re "a{,2}", "", 0)));
-   (assertMatch (0, 1, Array.fromList []) (match(re "a{,2}", "a", 0)));
-   (assertMatch (0, 2, Array.fromList []) (match(re "a{,2}", "aa", 0)));
-   (assertMatch (0, 2, Array.fromList []) (match(re "a{,2}", "aaa", 0)));
-   (assertMatch (0, 2, Array.fromList []) (match(re "ab{1,2}", "ab", 0)));
-   (assertMatch (0, 2, Array.fromList []) (match(re "ab{1,2}", "abab", 0)));
-   (assertMatch (0, 1, Array.fromList []) (match(re "[ab]{,2}", "a", 0)))
+  ((assertMatch (0, 2, []) (match(re "a{0,2}", "aaa", 0)));
+   (assertMatch (0, 2, []) (match(re "a{0,2}", "aaaa", 0)));
+   (assertMatch (0, 1, []) (match(re "a{0,2}", "a", 0)));
+   (assertMatch (0, 1, []) (match(re "a{1,2}", "a", 0)));
+   (assertNotMatch         (match(re "a{2,2}", "a", 0)));
+   (assertMatch (0, 1, []) (match(re "a{1,}", "a", 0)));
+   (assertMatch (0, 2, []) (match(re "a{1,}", "aa", 0)));
+   (assertMatch (0, 5, []) (match(re "a{1,}", "aaaaa", 0)));
+   (assertMatch (0, 0, []) (match(re "a{,2}", "", 0)));
+   (assertMatch (0, 1, []) (match(re "a{,2}", "a", 0)));
+   (assertMatch (0, 2, []) (match(re "a{,2}", "aa", 0)));
+   (assertMatch (0, 2, []) (match(re "a{,2}", "aaa", 0)));
+   (assertMatch (0, 2, []) (match(re "ab{1,2}", "ab", 0)));
+   (assertMatch (0, 2, []) (match(re "ab{1,2}", "abab", 0)));
+   (assertMatch (0, 1, []) (match(re "[ab]{,2}", "a", 0)))
   )
 (* matchString *)
 fun matchString_simple_test () =
