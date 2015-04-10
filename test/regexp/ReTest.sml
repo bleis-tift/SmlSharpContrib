@@ -287,22 +287,38 @@ fun match_group_test () =
   )
 (* matchString *)
 fun matchString_simple_test () =
-  assertMatchString ("a", Array.fromList []) (matchString(re "a", "a", 0))
+  (assertMatchString ("a", Array.fromList []) (matchString(re "a", "a", 0));
+   assertMatchString ("abbb", Array.fromList ["bbb"]) (matchString(re "a(b*)", "abbb", 0));
+   assertMatchString ("a", Array.fromList [""]) (matchString(re "a(b*)", "a", 0))
+  )
 (* matchstrings *)
 fun matchStrings_simple_test () =
-  assertEqualStringList ["a", "a"] (matchStrings(re "a", "aa", 0))
+  (assertEqualStringList ["a", "a"] (matchStrings(re "a", "aa", 0));
+   assertEqualStringList ["a", "a", "ab"] (matchStrings(re "ab?", "aaab", 0))
+  )
 (* doesMatch *)
 fun doesMatch_simple_test () =
-  assertTrue (doesMatch(re "a", "a", 0))
+  (assertTrue (doesMatch(re "a", "a", 0));
+   assertFalse (doesMatch(re "a", "b", 0))
+  )
 (* split *)
 fun split_simpl_test () =
-  assertEqualStringList ["a", "b", "c"] (split(re " ", "a b c", 0))
+  (assertEqualStringList ["a", "b", "c"] (split(re " ", "a b c", 0));
+   assertEqualStringList ["a", "", "b", "c"] (split(re " ", "a  b c", 0));
+   assertEqualStringList ["a", "b", "c"] (split(re " +", "a  b c", 0))
+  )
 (* replace *)
 fun replace_simple_test () =
-  assertEqualString "b" (replace(re"a", "a", 0, "b"))
+  (assertEqualString "b" (replace(re"a", "a", 0, "b"));
+   assertEqualString "bb" (replace(re"a+", "aaab", 0, "b"));
+   assertEqualString "bbaa" (replace(re"a+", "aaabaa", 0, "b"))
+  )
 (* replaceAll *)
 fun replaceAll_simple_test () =
-  assertEqualString "b" (replace(re"a", "a", 0, "b"))
+  (assertEqualString "b" (replace(re"a", "a", 0, "b"));
+   assertEqualString "bb" (replace(re"a+", "aaab", 0, "b"));
+   assertEqualString "bbb" (replace(re"a+", "aaabaa", 0, "b"))
+)
       
 
 fun suite _ =Test.labelTests [
