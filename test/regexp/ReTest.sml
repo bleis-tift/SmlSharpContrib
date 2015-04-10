@@ -264,6 +264,27 @@ fun match_bar_test () =
    (assertMatch (0, 0, []) (match(re "a*|cd|ef", "b", 0)));
    (assertMatch (0, 3, []) (match(re "ab|cd{1,2}|ef", "cdd", 0)))
   )
+fun match_group_test () =
+  ((assertMatch (0, 1, [(0, 1)]) (match(re"(a)", "a", 0)));
+   (assertMatch (0, 2, [(0, 1)]) (match(re"(a)b", "ab", 0)));
+   (assertMatch (0, 2, [(0, 2)]) (match(re"(ab)", "ababab", 0)));
+   (assertMatch (0, 2, [(0, 2)]) (match(re"(ab)?", "ababab", 0)));
+   (assertMatch (0, 6, [(0, 6)]) (match(re"(ab)*", "ababab", 0)));
+   (assertMatch (0, 6, [(0, 6)]) (match(re"(ab)+", "ababab", 0)));
+   (assertNotMatch               (match(re"(ab)+", "a", 0)));
+   (assertMatch (0, 2, [(0, 1), (1, 2)]) (match(re"(a)(b)", "ab", 0)));
+   (assertMatch (0, 3, [(0, 1)]) (match(re"(a|b)cd", "acd", 0)));
+   (assertMatch (0, 3, [(0, 1)]) (match(re"(a|b)cd", "bcd", 0)));
+   (assertMatch (0, 3, [(0, 1)]) (match(re"(^a|b)cd", "acd", 0)));
+   (assertMatch (0, 3, [(0, 1)]) (match(re"(^a|b)cd", "bcd", 0)));
+   (assertNotMatch               (match(re"(^a|b)cd", "bacd", 0)));
+   (assertMatch (1, 4, [(1, 2)]) (match(re"(^a|b)cd", "abcd", 0)));
+   (assertMatch (0, 3, [(2, 3)]) (match(re"ab(c|d$)", "abc", 0)));
+   (assertMatch (0, 3, [(2, 3)]) (match(re"ab(c|d$)", "abd", 0)));
+   (assertMatch (0, 3, [(2, 3)]) (match(re"ab(c|d$)", "abca", 0)));
+   (assertNotMatch               (match(re"ab(c|d$)", "abda", 0)));
+   (assertMatch (0, 4, [(0, 4), (1, 4), (2, 4), (3, 4)]) (match(re"(a(b(c(d))))", "abcd", 0)))
+  )
 (* matchString *)
 fun matchString_simple_test () =
   assertMatchString ("a", Array.fromList []) (matchString(re "a", "a", 0))
@@ -314,6 +335,7 @@ fun suite _ =Test.labelTests [
       ("match: /[]/", match_charset_test),
       ("match: /{,}/", match_curlybraces_test),
       ("match: /|/", match_bar_test),
+      ("match: /()/", match_group_test),
       
       ("matchString: simple string", matchString_simple_test),
 
