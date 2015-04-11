@@ -134,13 +134,6 @@ fun parseCharSet [] acc = List.rev acc
   | parseCharSet (t :: ts) acc = parseCharSet ts ((toItem t) :: acc)
                                               
 
-fun parse_one([], _) = NONE
-  | parse_one((t :: ts) : token list, gi) =
-    case t of
-        Char c => SOME(Item c, ts, gi)
-      | LeftParen => (case parse(ts, [], RightParen, gi + 1) of
-                          (x, ts', gi') => SOME(Group(gi, x), ts', gi'))
-      | _ => NONE              
 and parse((t :: ts), acc, e, gi) =
     if t = e
     then (And(List.foldl (fn(x, y) => (x :: y)) [] acc), ts, gi)
