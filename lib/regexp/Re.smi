@@ -2,10 +2,10 @@ _require "basis.smi"
 _require "RegexpParser.smi"
 _require "Regexp.smi"
 structure Re = struct
-type t = RegexpParser.t
+type t (= boxed)
 
-exception Lex = RegexpParser.Lex
-exception Parse = RegexpParser.Parse
+exception Lex
+exception Parse
 
 val re : string -> t
 val match : t * string * int ->  (int * int * ((int * int) array)) option

@@ -1,5 +1,36 @@
-structure RegexpParser =
+functor RegexpParser(X:sig
+                          structure C: sig
+                                   eqtype char
+                                   eqtype string
+                                   val ord: char -> int
+                                   val chr: int -> char
+                                   val minChar: char
+                                   val maxChar: char
+                                   val notContains: string -> char -> bool
+                               end
+                     structure S: sig
+                                   eqtype char
+                                   eqtype string
+                                   val toString: string -> String.string
+                                   val implode: char list -> string
+                                   val explode: string -> char list
+                               end
+                                   
+                     sharing type C.char = S.char
+                     sharing type C.string = S.string
+                     end
+                    )
+        : REGEXP_PARSER 
+=
 struct
+open X
+type string = C.string
+type char = C.char
+
+fun fromLiteral c = C.chr (ord c)
+val c = fromLiteral
+fun stringToInt (str : string) = Int.fromString (S.toString str)
+
 datatype ast
   = Item of char
   | LineStart
@@ -9,7 +40,8 @@ datatype ast
   | Kleene of ast
   | Group of int * ast
   | Any
-  | Empty
+       | Empty
+
 type t = ast * int
 
 datatype token
@@ -30,43 +62,52 @@ datatype token
   | RightBrace
   | Hyphen
   | Bang
+  | Comma
   | EOS
 
 fun toItem t =
   case t of
       Char x => Item x
-    | Hat => Item #"^"
-    | Dollar => Item #"$"
-    | Dot => Item #"."
-    | Star => Item #"*"
-    | Plus => Item #"+"
-    | Bar => Item #"|"
-    | Option => Item #"?"
-    | LeftParen => Item #")"
-    | RightParen => Item #"("
-    | LeftBracket => Item #"["
-    | RightBrackt => Item #"]"
-    | LeftBrace => Item #"{"
-    | RightBrace => Item #"}"
-    | _ => Item #" "
+    | Hat => Item (c #"^")
+    | Dollar => Item (c #"$")
+    | Dot => Item (c #".")
+    | Star => Item (c #"*")
+    | Plus => Item (c #"+")
+    | Bar => Item (c #"|")
+    | Option => Item (c #"?")
+    | LeftParen => Item (c #")")
+    | RightParen => Item (c #"(")
+    | LeftBracket => Item (c #"[")
+    | RightBrackt => Item (c #"]")
+    | LeftBrace => Item (c #"{")
+    | RightBrace => Item (c #"}")
+    | Hyphen => Item (c #"-")
+    | Bang => Item (c #"!")
+    | Comma => Item (c #",")
+    | EOS => Item (c #" ")
+    | SOS => Item (c #" ")
 
 fun toChar t =
   case t of
       Char x => Char x
-    | Hat => Char #"^"
-    | Dollar => Char #"$"
-    | Dot => Char #"."
-    | Star => Char #"*"
-    | Plus => Char #"+"
-    | Bar => Char #"|"
-    | Option => Char #"?"
-    | LeftParen => Char #")"
-    | RightParen => Char #"("
-    | LeftBracket => Char #"["
-    | RightBrackt => Char #"]"
-    | LeftBrace => Char #"{"
-    | RightBrace => Char #"}"
-    | _ => Char #" "
+    | Hat => Char (c #"^")
+    | Dollar => Char (c #"$")
+    | Dot => Char (c #".")
+    | Star => Char (c #"*")
+    | Plus => Char (c #"+")
+    | Bar => Char (c #"|")
+    | Option => Char (c #"?")
+    | LeftParen => Char (c #")")
+    | RightParen => Char (c #"(")
+    | LeftBracket => Char (c #"[")
+    | RightBrackt => Char (c #"]")
+    | LeftBrace => Char (c #"{")
+    | RightBrace => Char (c #"}")
+    | Hyphen => Char (c #"-")
+    | Bang => Char (c #"!")
+    | Comma =>  Char (c #",")
+    | EOS => Char (c #" ")
+    | SOS =>  Char (c #" ")
 
 exception Lex
 
@@ -74,7 +115,7 @@ fun lex str =
   let
       fun loop [] = []
         | loop (c :: cs) = 
-          case c of
+          case chr (C.ord c) of
               #"." => Dot :: loop cs
             | #"^" => Hat :: loop cs
             | #"$" => Dollar :: loop cs
@@ -91,13 +132,16 @@ fun lex str =
             | #"]" => RightBrackt :: loop cs
             | #"{" => LeftBrace :: loop cs
             | #"}" => RightBrace :: loop cs
+            | #"-" => Hyphen :: loop cs
+            | #"!" => Bang :: loop cs
+            | #"," => Comma :: loop cs
             | _    => Char c :: loop cs
       fun addSOS (LeftParen, SOS::xs) = SOS::LeftParen::SOS::xs
         | addSOS (x, xs) = x :: xs
       fun addEOS (RightParen, EOS::xs) = EOS::RightParen::EOS::xs
         | addEOS (x, xs) = x :: xs
   in
-      List.foldl addEOS [EOS] (List.foldl addSOS [SOS] (loop(String.explode str)))
+      List.foldl addEOS [EOS] (List.foldl addSOS [SOS] (loop (S.explode str)))
   end
 
 
@@ -105,37 +149,40 @@ exception Parse
 
 fun makeRange(Char s, Char e) =
   let
-      val si = Char.ord s
-      val ei = Char.ord e
+      val si = C.ord s
+      val ei = C.ord e
   in
-      List.tabulate(ei - si + 1, fn i => Item (Char.chr (si + i)))
+      List.tabulate(ei - si + 1, fn i => Item (C.chr (si + i)))
       handle Size => raise Parse
   end
   | makeRange _ =  raise Parse
 
 fun complementSet xs =
   let
-      val whole = List.tabulate((Char.ord Char.maxChar) - (Char.ord Char.minChar) + 1 , fn i => (Char.chr ((Char.ord Char.minChar) + i)))
-      val str = (String.implode (List.map (fn x => case x of
-                                                       Item x' => x'
-                                                     | _ => raise Parse ) xs))
+      val whole = List.tabulate((C.ord C.maxChar) - (C.ord C.minChar) + 1 , fn i => (C.chr ((C.ord C.minChar) + i)))
+      val str = (S.implode (List.map (fn x => case x of
+                                                  Item x' => x'
+                                                | _ => raise Parse ) xs))
   in
-      List.map (fn x => Item x) (List.filter (fn x => Char.notContains str x) whole)
+      List.map (fn x => Item x) (List.filter (fn x => C.notContains str x) whole)
   end
 
 fun parseCharSet [] acc = List.rev acc
   | parseCharSet (SOS :: Hat :: ts) acc = complementSet (parseCharSet (SOS :: ts) acc)
   | parseCharSet (SOS :: RightBrackt :: ts) acc = parseCharSet ts ((toItem RightBrackt) :: acc)
-  | parseCharSet (SOS :: (Char #"-") :: ts) acc = parseCharSet ts ((Item #"-") :: acc)
+  | parseCharSet (SOS :: Hyphen :: ts) acc = parseCharSet ts ((toItem Hyphen) :: acc)
   | parseCharSet (SOS :: ts) acc = parseCharSet ts acc
-  | parseCharSet ((Char #"-") :: t :: ts) acc = (case acc of
-                                                     (Item x) :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) @ xs)
-                                                   | _ => raise Parse)
+  | parseCharSet (Hyphen :: t :: ts) acc = (case acc of
+                                                (Item x) :: xs => parseCharSet ts ((makeRange(Char x, (toChar t))) @ xs)
+                                              | _ => raise Parse)
   | parseCharSet (t :: ts) acc = parseCharSet ts ((toItem t) :: acc)
                                               
 
 and parse((t :: ts), acc, e, gi) =
-    if t = e
+    if (case (t, e) of
+            (EOS, EOS) => true
+          | (RightParen, RightParen) => true
+          | _ => false)
     then (And(List.foldl (fn(x, y) => (x :: y)) [] acc), ts, gi)
     else (case t of
               SOS => (case ts of
@@ -144,7 +191,7 @@ and parse((t :: ts), acc, e, gi) =
             | Char c => parse(ts, (Item c) :: acc, e, gi)
             | Dollar => (case ts of
                              EOS :: ts' => parse(EOS :: ts', LineEnd :: acc, e, gi)
-                           | _ => parse(ts, (Item #"$") :: acc, e, gi))
+                           | _ => parse(ts, (toItem Dollar) :: acc, e, gi))
             | Dot => parse(ts, Any :: acc, e, gi)
             | Star => (case acc of
                            [] => raise Parse
@@ -171,14 +218,14 @@ and parse((t :: ts), acc, e, gi) =
                              in
                                  parse(rest, (Or (parseCharSet (SOS :: charSet) []) :: acc), e, gi)
                              end
-            | LeftBrace => (let fun collect1 ((Char #",") :: xs) [] l = (xs, NONE)
-                                  | collect1 ((Char #",") :: xs) acc' l = (case Int.fromString (String.implode (List.rev acc')) of
-                                                                               SOME l' =>  (xs, SOME l')
-                                                                             | NONE => raise Parse)
+            | LeftBrace => (let fun collect1 (Comma :: xs) [] l = (xs, NONE)
+                                  | collect1 (Comma :: xs) acc' l = (case stringToInt (S.implode (List.rev acc')) of
+                                                                         SOME l' =>  (xs, SOME l')
+                                                                       | NONE => raise Parse)
                                   | collect1 ((Char x) :: xs) acc' l =  collect1 xs (x :: acc') l
                                   | collect1 _ _ _ = raise Parse
                                 fun collect2 (RightBrace :: xs) [] r = (xs, NONE)
-                                  | collect2 (RightBrace :: xs) acc' r = (case Int.fromString (String.implode (List.rev acc')) of
+                                  | collect2 (RightBrace :: xs) acc' r = (case stringToInt (S.implode (List.rev acc')) of
                                                                               SOME r' => (xs, SOME r')
                                                                             | NONE => raise Parse)
                                   | collect2 ((Char x) :: xs) acc' r =  collect2 xs (x :: acc') r
@@ -198,10 +245,11 @@ and parse((t :: ts), acc, e, gi) =
                                   | _ => raise Parse
                             end
                             handle Size => raise Parse)
-            | Hat => parse(ts, (Item #"^") :: acc, e, gi)
-            | RightParen=> parse(ts, (Item #")") :: acc, e, gi)
-            | RightBrackt => parse(ts, (Item #"]") :: acc, e, gi)
-            | RightBrace => parse(ts, (Item #"}") :: acc, e, gi)
+            | x as Hat => parse(ts, (toItem x) :: acc, e, gi)
+            | x as RightParen=> parse(ts, (toItem x) :: acc, e, gi)
+            | x as RightBrackt => parse(ts, (toItem x) :: acc, e, gi)
+            | x as RightBrace => parse(ts, (toItem x) :: acc, e, gi)
+            | x as Comma => parse(ts, (toItem x) :: acc, e, gi)
             | EOS => parse(ts, acc, e, gi)
             | _ =>  raise Parse)
   | parse _ =  raise Parse
@@ -226,7 +274,10 @@ fun compaction a =
         | f (Group(i, x)) = Group(i, (f x))
         | f x = x
       (* remove Empty *)
-      fun c (And xs) = (case (List.filter (fn x => x <> Empty) (List.map c xs)) of
+      fun c (And xs) = (case (List.filter (fn x => case x of
+                                                       Empty => false
+                                                     | _ => true)
+                                          (List.map c xs)) of
                             [] => Empty
                           | [x] => x
                           | xs' => And xs')
@@ -243,13 +294,4 @@ fun compaction a =
 
 fun re str =
   let val (res, _, gi) = parse(lex str, [], EOS, 0) in (compaction res, gi) end
-
-
-end:
-sig
-    type ast
-    type t
-    exception Lex
-    exception Parse
-    val re : string -> t
 end

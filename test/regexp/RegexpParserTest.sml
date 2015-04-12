@@ -1,7 +1,8 @@
 structure RegexpParserTest =
 struct
+structure RP = RegexpParser(structure C = Char structure S = String)
 open SMLUnit
-open RegexpParser
+open RP
 open Assert
 
 fun assertWork str =
