@@ -8,7 +8,11 @@ val mkTmpDir: string -> string
 val mkTmpFile: string -> string
 val openTmpFile: strinng -> TextIO.outstream * string
 val fold: (string * 'b -> 'b) -> 'b -> string -> 'b
+val fold': (string * 'b -> 'b) -> 'b -> string -> 'b
 val walk: string -> (string -> unit) -> unit
+val walk': string -> (string -> unit) -> unit
 val map: (string -> 'a) -> string -> 'a list
+val map': (string -> 'a) -> string -> 'a list
 val filter: (string -> boolean) -> string -> string list
+val filter': (string -> boolean) -> string -> string list
 end

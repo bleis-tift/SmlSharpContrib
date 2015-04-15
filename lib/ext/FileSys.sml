@@ -15,6 +15,7 @@ fun listDir s =
   in
       loop []
   end
+
 fun optionToStr (SOME s) = s
   | optionToStr NONE = ""
 
@@ -49,14 +50,41 @@ fun fold f u dir =
       loop u
   end
 
+fun fold' f u dir =
+  let
+      val d = F.openDir dir;
+      fun loop res =
+        case F.readDir d of
+            SOME entry => let
+             val name = (OS.Path.concat(dir, entry))
+         in
+             if F.isDir name
+             then loop(f(name, fold' f res name))
+             else loop(f(name, res))
+         end
+          | NONE => (F.closeDir d; res)
+  in
+      loop u
+  end
+
+
 fun walk dir f =
   fold (fn (entry, _) => f entry) () dir
+fun walk' dir f =
+  fold' (fn (entry, _) => f entry) () dir
 
 fun map f dir =
-  fold (fn (entry, acc) => (f(entry) :: acc)) [] dir
+  fold (fn (entry, acc) => f(entry) :: acc) [] dir
+
+fun map' f dir =
+  fold' (fn (entry, acc) => f(entry) :: acc) [] dir
 
 fun filter f dir =
   fold (fn (entry, acc) => (if f entry
+                            then entry :: acc
+                            else acc)) [] dir
+fun filter' f dir =
+  fold' (fn (entry, acc) => (if f entry
                             then entry :: acc
                             else acc)) [] dir
 end
