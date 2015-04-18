@@ -5,10 +5,12 @@ struct
 exception Parse
 type headerArray(=boxed)
 type chunkedDecoder = unit ptr
+type request = {method: string, path: string, minorVersion: int, headers: (string * string) list}
+type response = {minorVersion: int, status: int, message: string, headers: (string * string) list}
 val prepareHeaders: int -> headerArray
 val prepareDecoder: unit -> chunkedDecoder
-val parseRequest: headerArray -> string -> (string * string * int * (string * string) list) option
-val parseResponse: headerArray -> string -> (int * int * string * (string * string) list) option
+val parseRequest: headerArray -> string -> request option
+val parseResponse: headerArray -> string -> response option
 val parseHeaders: headerArray -> string -> ((string * string) list) option
 val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref -> unit option
 end

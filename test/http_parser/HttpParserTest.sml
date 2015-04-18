@@ -3,25 +3,39 @@ open SMLUnit
 open HttpParser
 open Assert
 
+val assertEqualHeader =
+    assertEqualList(assertEqual2Tuple(assertEqualString,
+                                      assertEqualString))
+
 fun assertHeaderParsed expected actual =
   (assertSome actual;
-     assertEqualList(assertEqual2Tuple(assertEqualString
-                                      , assertEqualString)) expected (Option.valOf actual))
+      assertEqualHeader expected (Option.valOf actual))
     
 fun assertRequestParsed expected actual =
   (assertSome actual;
-   assertEqual4Tuple(assertEqualString,
-                     assertEqualString,
-                     assertEqualInt,
-                     assertEqualList(assertEqual2Tuple(assertEqualString
-                                      , assertEqualString))) expected (Option.valOf actual))
+   let
+       val a = Option.valOf actual
+       val e = expected
+   in
+       assertEqualString (#method e)       (#method a);
+       assertEqualString (#path e)         (#path a);
+       assertEqualInt    (#minorVersion e) (#minorVersion a);
+       assertEqualHeader (#headers e)      (#headers a)
+   end
+  )
 
 fun assertResponseParsed expected actual =
   (assertSome actual;
-   assertEqual4Tuple(assertEqualInt, assertEqualInt,
-                     assertEqualString,
-                     assertEqualList(assertEqual2Tuple(assertEqualString
-                                      , assertEqualString))) expected (Option.valOf actual))
+   let
+       val a = (Option.valOf actual)
+       val e = expected
+   in
+       assertEqualInt (#minorVersion e) (#minorVersion a);
+       assertEqualInt (#status e) (#status a);
+       assertEqualString (#message e) (#message a);
+       assertEqualHeader (#headers e) (#headers a)
+   end
+  )
 
 fun assertParseError thunk =
   let val  _ = thunk () in fail "exception didn't occured" end
@@ -37,25 +51,25 @@ val parseHeaders' = parseHeaders headerArray
 val requestTests = [
     ("simple",
      fn () => assertRequestParsed
-                  ("GET", "/", 0, [])
+                  {method = "GET", path = "/", minorVersion = 0, headers = []}
                   (parseRequest' "GET / HTTP/1.0\r\n\r\n")),
     ("partial",
      fn () => assertIncomplete (parseRequest' "GET / HTTP/1.0\r\n\r")),
     ("parse headers",
      fn () => assertRequestParsed
-                  ("GET", "/hoge", 1, [("Host", "example.com"), ("Cookie", "")])
+                  {method = "GET", path = "/hoge", minorVersion = 1, headers = [("Host", "example.com"), ("Cookie", "")]}
                   (parseRequest' "GET /hoge HTTP/1.1\r\nHost: example.com\r\nCookie: \r\n\r\n")),
     (* ("multibyte included", *)
     (*  fn () => assertRequestParsed *)
-    (*              ("GET", "/hoge", 1, [("Host", "example.com"), ("User-Agent", "\343\201\262\343/1.0")]) *)
+    (*              {method = "GET", path = "/hoge", minorVersion = 1, headers = [("Host", "example.com"), ("User-Agent", "\343\201\262\343/1.0")]} *)
     (*              (parseRequest' "GET /hoge HTTP/1.1\r\nHost: example.com\r\nUser-Agent: \343\201\262\343/1.0\r\n\r\n")), *)
     ("parse multiline",
      fn () => assertRequestParsed
-                  ("GET", "/", 0, [("foo", ""), ("foo", "b  \tc")])
+                  {method = "GET", path = "/", minorVersion = 0, headers = [("foo", ""), ("foo", "b  \tc")]}
                   (parseRequest' "GET / HTTP/1.0\r\nfoo: \r\nfoo: b\r\n  \tc\r\n\r\n")),
     ("http header name with trailing space",
      fn () => assertRequestParsed
-                  ("GET", "/", 0, [("foo ", "ab")])
+                  {method = "GET", path = "/", minorVersion = 0, headers = [("foo ", "ab")]}
                   (parseRequest' "GET / HTTP/1.0\r\nfoo : ab\r\n\r\n")),
     ("incomplete 1",
      fn () => assertIncomplete (parseRequest' "GET")),
@@ -77,7 +91,7 @@ val requestTests = [
      fn () => assertIncomplete (parseRequest' "GET /hoge HTTP/1.0\r\n\r")),
     ("slowloris (complete)",
      fn () => assertRequestParsed
-                  ("GET", "/hoge", 0, [])
+                  {method = "GET", path = "/hoge", minorVersion = 0, headers = []}
                   (parseRequest' "GET /hoge HTTP/1.0\r\n\r\n")),
     ("empty header name",
      fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\n:a\r\n\r\n")),
@@ -99,28 +113,28 @@ val requestTests = [
      fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\nab: c\027\r\n\r\n")),
     ("accept MSB chars",
      fn () => assertRequestParsed
-                  ("GET", "/\160", 0, [("h", "c\162y")])
+                  {method = "GET", path = "/\160", minorVersion = 0, headers = [("h", "c\162y")]}
                   (parseRequest' "GET /\160 HTTP/1.0\r\nh: c\162y\r\n\r\n"))
 ]
 
 val responseTests = [
     ("simple",
      fn () => assertResponseParsed
-                  (0, 200, "OK", [])
+                  {minorVersion = 0, status = 200, message = "OK", headers = []}
                   (parseResponse' "HTTP/1.0 200 OK\r\n\r\n")),
     ("partial",
      fn () => assertIncomplete (parseResponse' "HTTP/1.0 200 OK\r\n\r")),
     ("parse headers",
      fn () => assertResponseParsed
-                  (1, 200, "OK", [("Host", "example.com"), ("Cookie", "")])
+                  {minorVersion = 1, status = 200, message = "OK", headers = [("Host", "example.com"), ("Cookie", "")]}
                   (parseResponse'"HTTP/1.1 200 OK\r\nHost: example.com\r\nCookie: \r\n\r\n")),
     ("parse multiline",
      fn () => assertResponseParsed
-                  (0, 200, "OK", [("foo", ""), ("foo", "b  \tc")])
+                  {minorVersion = 0, status = 200, message = "OK", headers = [("foo", ""), ("foo", "b  \tc")]}
                   (parseResponse'"HTTP/1.0 200 OK\r\nfoo: \r\nfoo: b\r\n  \tc\r\n\r\n")),
     ("internal server error",
      fn () => assertResponseParsed
-                  (0, 500, "Internal Server Error", [])
+                  {minorVersion = 0, status = 500, message = "Internal Server Error", headers = []}
                   (parseResponse'"HTTP/1.0 500 Internal Server Error\r\n\r\n")),
     ("incomplete 1",
      fn () => assertIncomplete (parseResponse' "H")),
@@ -152,7 +166,7 @@ val responseTests = [
      fn () => assertIncomplete (parseResponse' "HTTP/1.0 200 OK\r\n\r")),
     ("slowloris (complete)",
      fn () => assertResponseParsed
-                  (0, 200, "OK", [])
+                  {minorVersion = 0, status = 200, message = "OK", headers = []}
                   (parseResponse' "HTTP/1.0 200 OK\r\n\r\n")),
     ("invalid http version",
      fn () => assertParseError (fn () => (parseResponse' "HTTP/1. 200 OK\r\n\r\n"))),

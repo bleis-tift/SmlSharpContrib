@@ -4,6 +4,8 @@ struct
 type headers = unit ptr
 type headerArray = (headers * int)
 type chunkedDecoder = unit ptr
+type request = {method: string, path: string, minorVersion: int, headers: (string * string) list}
+type response = {minorVersion: int, status: int, message: string, headers: (string * string) list}
 exception Parse
 exception MemoryFull
 
@@ -118,12 +120,12 @@ fun parseRequest (headerArray as (headers, n)) buf =
                              minorVersion, headers, numHeaders, 0) of
           ~1 => raise Parse
         | ~2 => NONE
-        | x => SOME(
-            String.substring(!method, 0, !methodLen),
-            String.substring(!path, 0, !pathLen),
-            !minorVersion,
-            getHeaders (headers, n) (!numHeaders)
-        )
+        | x => SOME{
+                  method = String.substring(!method, 0, !methodLen),
+                  path = String.substring(!path, 0, !pathLen),
+                  minorVersion = !minorVersion,
+                  headers = getHeaders (headers, n) (!numHeaders)
+              }
   end
 
 fun parseResponse (headerArray as (headers, n)) buf =
@@ -139,11 +141,12 @@ fun parseResponse (headerArray as (headers, n)) buf =
                               headers, numHeaders, 0) of
           ~1 => raise Parse
         | ~2 => NONE
-        | _  => SOME(
-            !minorVersion, !status,
-            String.substring(!msg, 0, !msgLen),
-            getHeaders headerArray (!numHeaders)
-        )
+        | _  => SOME{
+                   minorVersion = !minorVersion,
+                   status = !status,
+                   message = String.substring(!msg, 0, !msgLen),
+                   headers = getHeaders headerArray (!numHeaders)
+               }
   end
 
 fun parseHeaders (headerArray as (headers, n)) buf =
