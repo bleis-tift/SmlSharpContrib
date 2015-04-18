@@ -1,0 +1,8 @@
+_require "basis.smi"
+_require "smlunit-lib.smi"
+_require "http_parse/HttpParser.smi"
+
+structure HttpParserTest = struct
+  val suite : unit -> SMLUnit.Test.test
+end
+

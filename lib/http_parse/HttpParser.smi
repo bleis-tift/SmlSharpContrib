@@ -1,0 +1,9 @@
+_require "basis.smi"
+
+structure HttpParser =
+struct
+exception Parse
+exception RequestIncomplete
+
+val parseRequest: string -> string * string * int * (string * string) list
+end
