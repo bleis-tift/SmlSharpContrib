@@ -9,7 +9,7 @@ val assertEqualHeader =
 
 fun assertHeaderParsed expected actual =
   (assertSome actual;
-      assertEqualHeader expected (Option.valOf actual))
+   assertEqualHeader (#headers expected) (#headers (Option.valOf actual)))
     
 fun assertRequestParsed expected actual =
   (assertSome actual;
@@ -179,11 +179,11 @@ val responseTests = [
 val headersTest = [
     ("simple",
      fn () => assertHeaderParsed
-                  [("Host", "example.com"), ("Cookie", "")]
+                  {headers = [("Host", "example.com"), ("Cookie", "")]}
                   (parseHeaders' "Host: example.com\r\nCookie: \r\n\r\n")),
     ("slowloris",
      fn () => assertHeaderParsed
-                  [("Host", "example.com"), ("Cookie", "")]
+                  {headers = [("Host", "example.com"), ("Cookie", "")]}
                   (parseHeaders' "Host: example.com\r\nCookie: \r\n\r\n")),
     ("partial",
      fn () => assertIncomplete (parseHeaders' "Host: example.com\r\nCookie: \r\n\r")),

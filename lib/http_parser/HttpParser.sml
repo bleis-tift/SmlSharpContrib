@@ -4,8 +4,8 @@ struct
 type headers = unit ptr
 type headerArray = (headers * int)
 type chunkedDecoder = unit ptr
-type request = {method: string, path: string, minorVersion: int, headers: (string * string) list}
-type response = {minorVersion: int, status: int, message: string, headers: (string * string) list}
+type request = {method: string, path: string, minorVersion: int, headers: (string * string) list, parsedSize: int}
+type response = {minorVersion: int, status: int, message: string, headers: (string * string) list, parsedSize: int}
 exception Parse
 exception MemoryFull
 
@@ -124,7 +124,8 @@ fun parseRequest (headerArray as (headers, n)) buf =
                   method = String.substring(!method, 0, !methodLen),
                   path = String.substring(!path, 0, !pathLen),
                   minorVersion = !minorVersion,
-                  headers = getHeaders (headers, n) (!numHeaders)
+                  headers = getHeaders (headers, n) (!numHeaders),
+                  parsedSize = x
               }
   end
 
@@ -141,11 +142,12 @@ fun parseResponse (headerArray as (headers, n)) buf =
                               headers, numHeaders, 0) of
           ~1 => raise Parse
         | ~2 => NONE
-        | _  => SOME{
+        | x  => SOME{
                    minorVersion = !minorVersion,
                    status = !status,
                    message = String.substring(!msg, 0, !msgLen),
-                   headers = getHeaders headerArray (!numHeaders)
+                   headers = getHeaders headerArray (!numHeaders),
+                   parsedSize = x
                }
   end
 
@@ -157,12 +159,12 @@ fun parseHeaders (headerArray as (headers, n)) buf =
       case phr_parse_headers(buf, bufLen, headers, numHeaders, 0) of
           ~1 => raise Parse
         | ~2 => NONE
-        | _  => SOME(getHeaders headerArray (!numHeaders))
+        | x  => SOME{headers = (getHeaders headerArray (!numHeaders)), parsedSize = x}
   end
 
 fun decodeChunked decoder buf start size =
   case phr_decode_chunked_aux(decoder, buf, start, size) of
       ~1 => raise Parse
     | ~2 => NONE
-    | _  => SOME()
+    | x  => SOME(x)
 end
