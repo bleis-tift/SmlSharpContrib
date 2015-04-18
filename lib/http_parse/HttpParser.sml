@@ -3,7 +3,9 @@ struct
 
 type header = (string * string)
 type headers = unit ptr
+type headerArray = (unit ptr * int)
 exception Parse
+exception MemoryFull
 exception RequestIncomplete
 
 val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callback))
@@ -21,15 +23,27 @@ val phr_parse_request =
                                                  int ref, int
                                                ) -> int
 
-fun getHeader headers i =
+fun prepareHeaders n =
+  let
+      val headers = phr_prepare_headers n
+  in
+      if headers = _NULL
+      then raise MemoryFull
+      else (headers, n)
+  end
+
+fun getHeader (headers, n) i =
   let
       val name = ref ""
       val nameLen = ref 0
       val value = ref ""
       val valueLen = ref 0
   in
-      phr_header_at(headers, i,  name, nameLen, value, valueLen);
-      if !name = ""
+      if 0 <= i andalso i < n
+      then phr_header_at(headers, i,  name, nameLen, value, valueLen)
+      else raise Subscript
+    ;
+      if (!name) = ""
       then (NONE, String.substring(!value, 0, !valueLen))
       else (SOME(String.substring(!name, 0, !nameLen)), String.substring(!value, 0, !valueLen))
   end
@@ -45,13 +59,13 @@ fun getHeaders headers n =
         | maybeAppend str1 (NONE) = str1
   in
       #1 (List.foldl (fn ((name, value), (acc, value_acc))=>
-                     case name of
-                         NONE => (acc, SOME(maybeAppend value value_acc))
-                       | SOME name' => ((name', maybeAppend value value_acc):: acc, NONE))
-                 ([], NONE) (loop 0 []))
+                         case name of
+                             NONE => (acc, SOME(maybeAppend value value_acc))
+                           | SOME name' => ((name', maybeAppend value value_acc):: acc, NONE))
+                     ([], NONE) (loop 0 []))
   end
       
-fun parseRequest buf =
+fun parseRequest (headers, n) buf=
   let
       val bufLen = String.size(buf)
       val method = ref ""
@@ -59,8 +73,7 @@ fun parseRequest buf =
       val path = ref ""
       val pathLen = ref 0
       val minorVersion = ref 0
-      val headers =  phr_prepare_headers(10)
-      val numHeaders = ref 10
+      val numHeaders = ref n
   in
       case phr_parse_request(buf, bufLen, method, methodLen, path, pathLen,
                              minorVersion, headers, numHeaders, 0) of
@@ -70,7 +83,7 @@ fun parseRequest buf =
             String.substring(!method, 0, !methodLen),
             String.substring(!path, 0, !pathLen),
             !minorVersion,
-            getHeaders headers (!numHeaders)
+            getHeaders (headers, !numHeaders) (!numHeaders)
         )
   end
 end

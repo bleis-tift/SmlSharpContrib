@@ -4,6 +4,7 @@ structure HttpParser =
 struct
 exception Parse
 exception RequestIncomplete
-
-val parseRequest: string -> string * string * int * (string * string) list
+type headerArray(=boxed)
+val prepareHeaders: int -> headerArray
+val parseRequest: headerArray -> string -> string * string * int * (string * string) list
 end
