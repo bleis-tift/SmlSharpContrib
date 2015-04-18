@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "picohttpparser.h"
 
 struct phr_header
@@ -20,4 +21,21 @@ phr_header_at(struct phr_header *headers, int i,
   *name_len = header.name_len;
   *value = header.value;
   *value_len = header.value_len;
+}
+
+struct phr_chunked_decoder
+*phr_prepare_decoder()
+{
+  struct phr_chunked_decoder *decoder;
+
+  decoder =  malloc(sizeof(*decoder));
+  if(decoder)
+    memset(decoder, 0, sizeof(*decoder));
+  return decoder;
+}
+
+ssize_t
+phr_decode_chunked_aux(struct phr_chunked_decoder *decoder, char *buf, int start, size_t *size)
+{
+  return phr_decode_chunked(decoder, buf + start, size);
 }

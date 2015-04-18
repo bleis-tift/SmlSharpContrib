@@ -3,6 +3,7 @@ struct
 
 type headers = unit ptr
 type headerArray = (headers * int)
+type chunkedDecoder = unit ptr
 exception Parse
 exception MemoryFull
 
@@ -11,6 +12,9 @@ val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callb
 
 val phr_header_at = _import "phr_header_at": __attribute__((no_callback))
                                                           (headers, int, string ref, int ref, string ref, int ref) -> ()
+
+val phr_prepare_decoder = _import "phr_prepare_decoder": __attribute__((no_callback))
+                                                                      () -> chunkedDecoder
 
 val phr_parse_request =
     _import "phr_parse_request":  __attribute__((no_callback))
@@ -41,6 +45,14 @@ val phr_parse_headers =
                                                 int
                                               ) -> int
 
+val phr_decode_chunked_aux =
+    _import "phr_decode_chunked_aux": __attribute__((no_callback))
+                                               (
+                                                 chunkedDecoder,
+                                                 CharArray.array, int,
+                                                 int ref
+                                               ) -> int
+
 fun prepareHeaders n =
   let
       val headers = phr_prepare_headers n
@@ -64,6 +76,15 @@ fun getHeader (headers, n) i =
       if (!name) = ""
       then (NONE, String.substring(!value, 0, !valueLen))
       else (SOME(String.substring(!name, 0, !nameLen)), String.substring(!value, 0, !valueLen))
+  end
+
+fun prepareDecoder () =
+  let
+      val decoder = phr_prepare_decoder()
+  in
+      if decoder = _NULL
+      then raise MemoryFull
+      else decoder
   end
 
 fun getHeaders headers n =
@@ -135,4 +156,10 @@ fun parseHeaders (headerArray as (headers, n)) buf =
         | ~2 => NONE
         | _  => SOME(getHeaders headerArray (!numHeaders))
   end
+
+fun decodeChunked decoder buf start size =
+  case phr_decode_chunked_aux(decoder, buf, start, size) of
+      ~1 => raise Parse
+    | ~2 => NONE
+    | _  => SOME()
 end

@@ -4,8 +4,11 @@ structure HttpParser =
 struct
 exception Parse
 type headerArray(=boxed)
+type chunkedDecoder = unit ptr
 val prepareHeaders: int -> headerArray
+val prepareDecoder: unit -> chunkedDecoder
 val parseRequest: headerArray -> string -> (string * string * int * (string * string) list) option
 val parseResponse: headerArray -> string -> (int * int * string * (string * string) list) option
 val parseHeaders: headerArray -> string -> ((string * string) list) option
+val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref -> unit option
 end

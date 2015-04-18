@@ -177,6 +177,35 @@ val headersTest = [
      fn () => assertParseError (fn () => parseHeaders' "Host: e\127ample.com\r\nCookie: \r\n\r"))
 ]
 
-fun suite _ = Test.labelTests (requestTests @ responseTests @ headersTest)
+fun decodeAtOnce str =
+  let
+      val decoder = prepareDecoder()
+      val size = ref(String.size(str))
+      val arr = CharArray.array(!size, #"\000");
+  in
+      CharArray.copyVec {di = 0, dst = arr, src = str};
+      case decodeChunked decoder arr 0 size of
+          NONE => str
+        | SOME _ => let
+            val vec = CharArray.vector arr
+        in
+            String.substring(vec, 0, !size)
+        end
+  end
+
+val chunkedDecoderTest = [
+    ("1",
+     fn () => assertEqualString "hello world" (decodeAtOnce "b\r\nhello world\r\n0\r\n")),
+    ("2",
+     fn () => assertEqualString "hello world" (decodeAtOnce "6\r\nhello \r\n5\r\nworld\r\n0\r\n")),
+    ("3",
+     fn () => assertEqualString "hello world" (decodeAtOnce "6;comment=hi\r\nhello \r\n5\r\nworld\r\n0\r\n")),
+    ("4",
+     fn () => assertEqualString "hello world" (decodeAtOnce "6\r\nhello \r\n5\r\nworld\r\n0\r\na: b\r\nc: d\r\n\r\n")),
+    ("5",
+     fn () => assertEqualString "hello world" (decodeAtOnce "b\r\nhello world\r\n0\r\n"))
+]
+
+fun suite _ = Test.labelTests (requestTests @ responseTests @ headersTest @ chunkedDecoderTest)
 end
 
