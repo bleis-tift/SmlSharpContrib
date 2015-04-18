@@ -15,7 +15,8 @@ phr_header_at(struct phr_header *headers, int i,
   struct phr_header header;
 
   header = headers[i];
-  *name = header.name;
+  if(header.name)
+    *name = header.name;
   *name_len = header.name_len;
   *value = header.value;
   *value_len = header.value_len;

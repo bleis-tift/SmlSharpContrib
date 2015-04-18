@@ -37,7 +37,7 @@ fun suite _ = Test.labelTests [
       (*              (parseRequest "GET /hoge HTTP/1.1\r\nHost: example.com\r\nUser-Agent: \343\201\262\343/1.0\r\n\r\n")), *)
       ("parse multiline",
        fn () => assertParsed
-                    ("GET", "/", 0, [("foo", ""), ("foo", "b"), ("", "  \tc")])
+                    ("GET", "/", 0, [("foo", ""), ("foo", "b  \tc")])
                     (parseRequest "GET / HTTP/1.0\r\nfoo: \r\nfoo: b\r\n  \tc\r\n\r\n")),
       ("http header name with trailing space",
        fn () => assertParsed

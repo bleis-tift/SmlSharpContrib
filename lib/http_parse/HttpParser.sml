@@ -29,15 +29,26 @@ fun getHeader headers i =
       val valueLen = ref 0
   in
       phr_header_at(headers, i,  name, nameLen, value, valueLen);
-      (String.substring(!name, 0, !nameLen), String.substring(!value, 0, !valueLen))
+      if !name = ""
+      then (NONE, String.substring(!value, 0, !valueLen))
+      else (SOME(String.substring(!name, 0, !nameLen)), String.substring(!value, 0, !valueLen))
   end
 
 fun getHeaders headers n =
   let
-      fun loop 0 acc = acc
-        | loop i acc = loop (i - 1) ((getHeader headers (i - 1)) :: acc)
+      fun loop i acc =
+        if i = n
+        then acc
+        else loop (i + 1) ((getHeader headers i) :: acc)
+
+      fun maybeAppend str1 (SOME str2) = str1 ^ str2
+        | maybeAppend str1 (NONE) = str1
   in
-      loop n []
+      #1 (List.foldl (fn ((name, value), (acc, value_acc))=>
+                     case name of
+                         NONE => (acc, SOME(maybeAppend value value_acc))
+                       | SOME name' => ((name', maybeAppend value value_acc):: acc, NONE))
+                 ([], NONE) (loop 0 []))
   end
       
 fun parseRequest buf =
