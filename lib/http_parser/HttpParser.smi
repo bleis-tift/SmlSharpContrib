@@ -12,5 +12,5 @@ val prepareDecoder: unit -> chunkedDecoder
 val parseRequest: headerArray -> string -> request option
 val parseResponse: headerArray -> string -> response option
 val parseHeaders: headerArray -> string -> {headers: (string * string) list, parsedSize: int} option
-val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref ->  int option
+val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref ->  unit option
 end

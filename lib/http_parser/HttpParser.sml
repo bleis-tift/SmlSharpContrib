@@ -166,5 +166,5 @@ fun decodeChunked decoder buf start size =
   case phr_decode_chunked_aux(decoder, buf, start, size) of
       ~1 => raise Parse
     | ~2 => NONE
-    | x  => SOME(x)
+    | x  => SOME()
 end
