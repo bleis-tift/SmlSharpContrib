@@ -5,7 +5,6 @@ type headers = unit ptr
 type headerArray = (headers * int)
 exception Parse
 exception MemoryFull
-exception Incomplete
 
 val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callback))
                                                                       int -> headers
@@ -97,8 +96,8 @@ fun parseRequest (headerArray as (headers, n)) buf =
       case phr_parse_request(buf, bufLen, method, methodLen, path, pathLen,
                              minorVersion, headers, numHeaders, 0) of
           ~1 => raise Parse
-        | ~2 => raise Incomplete
-        | x => (
+        | ~2 => NONE
+        | x => SOME(
             String.substring(!method, 0, !methodLen),
             String.substring(!path, 0, !pathLen),
             !minorVersion,
@@ -118,8 +117,8 @@ fun parseResponse (headerArray as (headers, n)) buf =
       case phr_parse_response(buf, bufLen, minorVersion, status, msg, msgLen,
                               headers, numHeaders, 0) of
           ~1 => raise Parse
-        | ~2 => raise Incomplete
-        | x  => (
+        | ~2 => NONE
+        | _  => SOME(
             !minorVersion, !status,
             String.substring(!msg, 0, !msgLen),
             getHeaders headerArray (!numHeaders)
@@ -133,7 +132,7 @@ fun parseHeaders (headerArray as (headers, n)) buf =
   in
       case phr_parse_headers(buf, bufLen, headers, numHeaders, 0) of
           ~1 => raise Parse
-        | ~2 => raise Incomplete
-        | x  => getHeaders headerArray (!numHeaders)
+        | ~2 => NONE
+        | _  => SOME(getHeaders headerArray (!numHeaders))
   end
 end

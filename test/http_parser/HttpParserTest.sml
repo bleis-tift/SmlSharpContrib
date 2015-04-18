@@ -3,26 +3,31 @@ open SMLUnit
 open HttpParser
 open Assert
 
-val assertHeaderParsed =
-    assertEqualList(assertEqual2Tuple(assertEqualString
-                                     , assertEqualString))
-val assertRequestParsed =
-    assertEqual4Tuple(assertEqualString,
-                      assertEqualString,
-                      assertEqualInt,
-                      assertHeaderParsed)
-val assertResponseParsed =
-    assertEqual4Tuple(assertEqualInt, assertEqualInt,
-                      assertEqualString,
-                      assertHeaderParsed)
+fun assertHeaderParsed expected actual =
+  (assertSome actual;
+     assertEqualList(assertEqual2Tuple(assertEqualString
+                                      , assertEqualString)) expected (Option.valOf actual))
+    
+fun assertRequestParsed expected actual =
+  (assertSome actual;
+   assertEqual4Tuple(assertEqualString,
+                     assertEqualString,
+                     assertEqualInt,
+                     assertEqualList(assertEqual2Tuple(assertEqualString
+                                      , assertEqualString))) expected (Option.valOf actual))
+
+fun assertResponseParsed expected actual =
+  (assertSome actual;
+   assertEqual4Tuple(assertEqualInt, assertEqualInt,
+                     assertEqualString,
+                     assertEqualList(assertEqual2Tuple(assertEqualString
+                                      , assertEqualString))) expected (Option.valOf actual))
 
 fun assertParseError thunk =
   let val  _ = thunk () in fail "exception didn't occured" end
   handle x => assertEqualExceptionName Parse x
 
-fun assertIncomplete thunk =
-  let val _ = thunk () in fail "exception didn't occured" end
-  handle x => assertEqualExceptionName Incomplete x
+fun assertIncomplete actual = assertNone actual
 
 val headerArray = (prepareHeaders 100)
 val parseRequest' = parseRequest headerArray
@@ -35,8 +40,7 @@ val requestTests = [
                   ("GET", "/", 0, [])
                   (parseRequest' "GET / HTTP/1.0\r\n\r\n")),
     ("partial",
-     fn () => assertIncomplete
-                  (fn () => parseRequest' "GET / HTTP/1.0\r\n\r")),
+     fn () => assertIncomplete (parseRequest' "GET / HTTP/1.0\r\n\r")),
     ("parse headers",
      fn () => assertRequestParsed
                   ("GET", "/hoge", 1, [("Host", "example.com"), ("Cookie", "")])
@@ -54,23 +58,23 @@ val requestTests = [
                   ("GET", "/", 0, [("foo ", "ab")])
                   (parseRequest' "GET / HTTP/1.0\r\nfoo : ab\r\n\r\n")),
     ("incomplete 1",
-     fn () => assertIncomplete (fn () => parseRequest' "GET")),
+     fn () => assertIncomplete (parseRequest' "GET")),
     ("incomplete 2",
-     fn () => assertIncomplete (fn () => parseRequest' "GET ")),
+     fn () => assertIncomplete (parseRequest' "GET ")),
     ("incomplete 3",
-     fn () => assertIncomplete (fn () => parseRequest' "GET /")),
+     fn () => assertIncomplete (parseRequest' "GET /")),
     ("incomplete 4",
-     fn () => assertIncomplete (fn () => parseRequest' "GET / ")),
+     fn () => assertIncomplete (parseRequest' "GET / ")),
     ("incomplete 5",
-     fn () => assertIncomplete (fn () => parseRequest' "GET / H")),
+     fn () => assertIncomplete (parseRequest' "GET / H")),
     ("incomplete 6",
-     fn () => assertIncomplete (fn () => parseRequest' "GET / HTTP/1.")),
+     fn () => assertIncomplete (parseRequest' "GET / HTTP/1.")),
     ("incomplete 7",
-     fn () => assertIncomplete (fn () => parseRequest' "GET / HTTP/1.0")),
+     fn () => assertIncomplete (parseRequest' "GET / HTTP/1.0")),
     ("incomplete 8",
-     fn () => assertIncomplete (fn () => parseRequest' "GET / HTTP/1.0\r")),
+     fn () => assertIncomplete (parseRequest' "GET / HTTP/1.0\r")),
     ("slowloris (incomplete)",
-     fn () => assertIncomplete (fn () => parseRequest' "GET /hoge HTTP/1.0\r\n\r")),
+     fn () => assertIncomplete (parseRequest' "GET /hoge HTTP/1.0\r\n\r")),
     ("slowloris (complete)",
      fn () => assertRequestParsed
                   ("GET", "/hoge", 0, [])
@@ -105,7 +109,7 @@ val responseTests = [
                   (0, 200, "OK", [])
                   (parseResponse' "HTTP/1.0 200 OK\r\n\r\n")),
     ("partial",
-     fn () => assertIncomplete (fn () =>(parseResponse' "HTTP/1.0 200 OK\r\n\r"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.0 200 OK\r\n\r")),
     ("parse headers",
      fn () => assertResponseParsed
                   (1, 200, "OK", [("Host", "example.com"), ("Cookie", "")])
@@ -119,33 +123,33 @@ val responseTests = [
                   (0, 500, "Internal Server Error", [])
                   (parseResponse'"HTTP/1.0 500 Internal Server Error\r\n\r\n")),
     ("incomplete 1",
-     fn () => assertIncomplete (fn () => (parseResponse' "H"))),
+     fn () => assertIncomplete (parseResponse' "H")),
     ("incomplete 2",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1."))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.")),
     ("incomplete 3",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1")),
     ("incomplete 4",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 "))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 ")),
     ("incomplete 5",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 2"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 2")),
     ("incomplete 6",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200")),
     ("incomplete 7",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 "))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 ")),
     ("incomplete 8",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 O"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 O")),
     ("incomplete 9",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 OK\r")),
     ("incomplete 10",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r\n"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 OK\r\n")),
     ("incomplete 11",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\n"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 OK\n")),
     ("incomplete 11",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r\nA: 1\r"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 OK\r\nA: 1\r")),
     ("incomplete 12",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r\nA: 1\r\n"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.1 200 OK\r\nA: 1\r\n")),
     ("slowloris (incomplete)",
-     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.0 200 OK\r\n\r"))),
+     fn () => assertIncomplete (parseResponse' "HTTP/1.0 200 OK\r\n\r")),
     ("slowloris (complete)",
      fn () => assertResponseParsed
                   (0, 200, "OK", [])
@@ -168,7 +172,7 @@ val headersTest = [
                   [("Host", "example.com"), ("Cookie", "")]
                   (parseHeaders' "Host: example.com\r\nCookie: \r\n\r\n")),
     ("partial",
-     fn () => assertIncomplete (fn () => parseHeaders' "Host: example.com\r\nCookie: \r\n\r")),
+     fn () => assertIncomplete (parseHeaders' "Host: example.com\r\nCookie: \r\n\r")),
     ("error",
      fn () => assertParseError (fn () => parseHeaders' "Host: e\127ample.com\r\nCookie: \r\n\r"))
 ]
