@@ -3,17 +3,18 @@ open SMLUnit
 open HttpParser
 open Assert
 
+val assertHeaderParsed =
+    assertEqualList(assertEqual2Tuple(assertEqualString
+                                     , assertEqualString))
 val assertRequestParsed =
     assertEqual4Tuple(assertEqualString,
                       assertEqualString,
                       assertEqualInt,
-                      assertEqualList(assertEqual2Tuple(assertEqualString
-                                                       , assertEqualString)))
+                      assertHeaderParsed)
 val assertResponseParsed =
     assertEqual4Tuple(assertEqualInt, assertEqualInt,
                       assertEqualString,
-                      assertEqualList(assertEqual2Tuple(assertEqualString
-                                                       , assertEqualString)))
+                      assertHeaderParsed)
 
 fun assertParseError thunk =
   let val  _ = thunk () in fail "exception didn't occured" end
@@ -26,6 +27,7 @@ fun assertIncomplete thunk =
 val headerArray = (prepareHeaders 100)
 val parseRequest' = parseRequest headerArray
 val parseResponse' = parseResponse headerArray
+val parseHeaders' = parseHeaders headerArray
 
 val requestTests = [
     ("simple",
@@ -156,6 +158,21 @@ val responseTests = [
      fn () => assertParseError (fn () => (parseResponse' "HTTP/1.1  OK\r\n\r\n")))
 ]
 
-fun suite _ = Test.labelTests (requestTests @ responseTests)
+val headersTest = [
+    ("simple",
+     fn () => assertHeaderParsed
+                  [("Host", "example.com"), ("Cookie", "")]
+                  (parseHeaders' "Host: example.com\r\nCookie: \r\n\r\n")),
+    ("slowloris",
+     fn () => assertHeaderParsed
+                  [("Host", "example.com"), ("Cookie", "")]
+                  (parseHeaders' "Host: example.com\r\nCookie: \r\n\r\n")),
+    ("partial",
+     fn () => assertIncomplete (fn () => parseHeaders' "Host: example.com\r\nCookie: \r\n\r")),
+    ("error",
+     fn () => assertParseError (fn () => parseHeaders' "Host: e\127ample.com\r\nCookie: \r\n\r"))
+]
+
+fun suite _ = Test.labelTests (requestTests @ responseTests @ headersTest)
 end
 

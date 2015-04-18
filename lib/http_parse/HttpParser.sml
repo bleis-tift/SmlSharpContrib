@@ -34,6 +34,14 @@ val phr_parse_response =
                                                  int
                                                ) -> int
 
+val phr_parse_headers =
+    _import "phr_parse_headers": __attribute__((no_callback))
+                                              (
+                                                string, int,
+                                                headers, int ref,
+                                                int
+                                              ) -> int
+
 fun prepareHeaders n =
   let
       val headers = phr_prepare_headers n
@@ -116,5 +124,16 @@ fun parseResponse (headerArray as (headers, n)) buf =
             String.substring(!msg, 0, !msgLen),
             getHeaders headerArray (!numHeaders)
         )
+  end
+
+fun parseHeaders (headerArray as (headers, n)) buf =
+  let
+      val bufLen = String.size(buf)
+      val numHeaders = ref n
+  in
+      case phr_parse_headers(buf, bufLen, headers, numHeaders, 0) of
+          ~1 => raise Parse
+        | ~2 => raise Incomplete
+        | x  => getHeaders headerArray (!numHeaders)
   end
 end

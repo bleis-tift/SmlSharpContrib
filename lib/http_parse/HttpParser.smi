@@ -8,4 +8,5 @@ type headerArray(=boxed)
 val prepareHeaders: int -> headerArray
 val parseRequest: headerArray -> string -> string * string * int * (string * string) list
 val parseResponse: headerArray -> string -> int * int * string * (string * string) list
+val parseHeaders: headerArray -> string -> (string * string) list
 end
