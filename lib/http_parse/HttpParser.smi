@@ -3,8 +3,9 @@ _require "basis.smi"
 structure HttpParser =
 struct
 exception Parse
-exception RequestIncomplete
+exception Incomplete
 type headerArray(=boxed)
 val prepareHeaders: int -> headerArray
 val parseRequest: headerArray -> string -> string * string * int * (string * string) list
+val parseResponse: headerArray -> string -> int * int * string * (string * string) list
 end

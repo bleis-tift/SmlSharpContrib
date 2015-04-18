@@ -1,12 +1,11 @@
 structure HttpParser =
 struct
 
-type header = (string * string)
 type headers = unit ptr
-type headerArray = (unit ptr * int)
+type headerArray = (headers * int)
 exception Parse
 exception MemoryFull
-exception RequestIncomplete
+exception Incomplete
 
 val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callback))
                                                                       int -> headers
@@ -17,10 +16,22 @@ val phr_header_at = _import "phr_header_at": __attribute__((no_callback))
 val phr_parse_request =
     _import "phr_parse_request":  __attribute__((no_callback))
                                                (
-                                                 string, int, string ref, int ref,
-                                                 string ref, int ref, int ref,
-                                                 headers,
-                                                 int ref, int
+                                                 string, int,
+                                                 string ref, int ref,
+                                                 string ref, int ref,
+                                                 int ref,
+                                                 headers, int ref,
+                                                 int
+                                               ) -> int
+
+val phr_parse_response =
+    _import "phr_parse_response": __attribute__((no_callback))
+                                               (
+                                                 string, int,
+                                                 int ref,
+                                                 int ref, string ref, int ref,
+                                                 headers, int ref,
+                                                 int
                                                ) -> int
 
 fun prepareHeaders n =
@@ -65,7 +76,7 @@ fun getHeaders headers n =
                      ([], NONE) (loop 0 []))
   end
       
-fun parseRequest (headers, n) buf=
+fun parseRequest (headerArray as (headers, n)) buf =
   let
       val bufLen = String.size(buf)
       val method = ref ""
@@ -78,12 +89,32 @@ fun parseRequest (headers, n) buf=
       case phr_parse_request(buf, bufLen, method, methodLen, path, pathLen,
                              minorVersion, headers, numHeaders, 0) of
           ~1 => raise Parse
-        | ~2 => raise RequestIncomplete
+        | ~2 => raise Incomplete
         | x => (
             String.substring(!method, 0, !methodLen),
             String.substring(!path, 0, !pathLen),
             !minorVersion,
-            getHeaders (headers, !numHeaders) (!numHeaders)
+            getHeaders (headers, n) (!numHeaders)
+        )
+  end
+
+fun parseResponse (headerArray as (headers, n)) buf =
+  let
+      val bufLen = String.size(buf)
+      val minorVersion = ref 0
+      val status = ref 0
+      val msg = ref ""
+      val msgLen = ref 0
+      val numHeaders = ref n
+  in
+      case phr_parse_response(buf, bufLen, minorVersion, status, msg, msgLen,
+                              headers, numHeaders, 0) of
+          ~1 => raise Parse
+        | ~2 => raise Incomplete
+        | x  => (
+            !minorVersion, !status,
+            String.substring(!msg, 0, !msgLen),
+            getHeaders headerArray (!numHeaders)
         )
   end
 end

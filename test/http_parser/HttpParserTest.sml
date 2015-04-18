@@ -3,10 +3,15 @@ open SMLUnit
 open HttpParser
 open Assert
 
-val assertParsed =
+val assertRequestParsed =
     assertEqual4Tuple(assertEqualString,
                       assertEqualString,
                       assertEqualInt,
+                      assertEqualList(assertEqual2Tuple(assertEqualString
+                                                       , assertEqualString)))
+val assertResponseParsed =
+    assertEqual4Tuple(assertEqualInt, assertEqualInt,
+                      assertEqualString,
                       assertEqualList(assertEqual2Tuple(assertEqualString
                                                        , assertEqualString)))
 
@@ -14,80 +19,143 @@ fun assertParseError thunk =
   let val  _ = thunk () in fail "exception didn't occured" end
   handle x => assertEqualExceptionName Parse x
 
-fun assertRequestIncomplete thunk =
+fun assertIncomplete thunk =
   let val _ = thunk () in fail "exception didn't occured" end
-  handle x => assertEqualExceptionName RequestIncomplete x
+  handle x => assertEqualExceptionName Incomplete x
 
-val parseRequest' = parseRequest (prepareHeaders 100)
+val headerArray = (prepareHeaders 100)
+val parseRequest' = parseRequest headerArray
+val parseResponse' = parseResponse headerArray
 
-fun suite _ = Test.labelTests [
-      ("simple",
-       fn () => assertParsed
-                    ("GET", "/", 0, [])
-                    (parseRequest' "GET / HTTP/1.0\r\n\r\n")),
-      ("partial",
-       fn () => assertRequestIncomplete
-                    (fn () => parseRequest' "GET / HTTP/1.0\r\n\r")),
-      ("parse headers",
-       fn () => assertParsed
-                    ("GET", "/hoge", 1, [("Host", "example.com"), ("Cookie", "")])
-                    (parseRequest' "GET /hoge HTTP/1.1\r\nHost: example.com\r\nCookie: \r\n\r\n")),
-      (* ("multibyte included", *)
-      (*  fn () => assertParsed *)
-      (*              ("GET", "/hoge", 1, [("Host", "example.com"), ("User-Agent", "\343\201\262\343/1.0")]) *)
-      (*              (parseRequest' "GET /hoge HTTP/1.1\r\nHost: example.com\r\nUser-Agent: \343\201\262\343/1.0\r\n\r\n")), *)
-      ("parse multiline",
-       fn () => assertParsed
-                    ("GET", "/", 0, [("foo", ""), ("foo", "b  \tc")])
-                    (parseRequest' "GET / HTTP/1.0\r\nfoo: \r\nfoo: b\r\n  \tc\r\n\r\n")),
-      ("http header name with trailing space",
-       fn () => assertParsed
-                   ("GET", "/", 0, [("foo ", "ab")])
-                   (parseRequest' "GET / HTTP/1.0\r\nfoo : ab\r\n\r\n")),
-      ("incomplete 1",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET")),
-      ("incomplete 2",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET ")),
-      ("incomplete 3",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET /")),
-      ("incomplete 4",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET / ")),
-      ("incomplete 5",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET / H")),
-      ("incomplete 6",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET / HTTP/1.")),
-      ("incomplete 7",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET / HTTP/1.0")),
-      ("incomplete 8",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET / HTTP/1.0\r")),
-      ("slowloris (incomplete)",
-       fn () => assertRequestIncomplete (fn () => parseRequest' "GET /hoge HTTP/1.0\r\n\r")),
-      ("slowloris (complete)",
-       fn () => assertParsed
-                   ("GET", "/hoge", 0, [])
-                   (parseRequest' "GET /hoge HTTP/1.0\r\n\r\n")),
-      ("empty header name",
-       fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\n:a\r\n\r\n")),
-      ("header name (space only)",
-       fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\n :a\r\n\r\n")),
-      ("NUL in method",
-       fn () => assertParseError (fn () => parseRequest' "G\000T / HTTP/1.0\r\n\r\n")),
-      ("tab in method",
-       fn () => assertParseError (fn () => parseRequest' "G\tT / HTTP/1.0\r\n\r\n")),
-      ("DEL in uri-path",
-       fn () => assertParseError (fn () => parseRequest' "GET /\127hello HTTP/1.0\r\n\r\n")),
-      ("NUL in header name",
-       fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\na\000b: c\r\n\r\n")),
-      ("NUL in header value",
-       fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\nab: c\000d\r\n\r\n")),
-      ("CTL in header name",
-       fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\na\027b: c\r\n\r\n")),
-      ("CTL in header value",
-       fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\nab: c\027\r\n\r\n")),
-      ("accept MSB chars",
-       (fn () => assertParsed
-                    ("GET", "/\160", 0, [("h", "c\162y")])
-                    (parseRequest' "GET /\160 HTTP/1.0\r\nh: c\162y\r\n\r\n")))
-  ]
+val requestTests = [
+    ("simple",
+     fn () => assertRequestParsed
+                  ("GET", "/", 0, [])
+                  (parseRequest' "GET / HTTP/1.0\r\n\r\n")),
+    ("partial",
+     fn () => assertIncomplete
+                  (fn () => parseRequest' "GET / HTTP/1.0\r\n\r")),
+    ("parse headers",
+     fn () => assertRequestParsed
+                  ("GET", "/hoge", 1, [("Host", "example.com"), ("Cookie", "")])
+                  (parseRequest' "GET /hoge HTTP/1.1\r\nHost: example.com\r\nCookie: \r\n\r\n")),
+    (* ("multibyte included", *)
+    (*  fn () => assertRequestParsed *)
+    (*              ("GET", "/hoge", 1, [("Host", "example.com"), ("User-Agent", "\343\201\262\343/1.0")]) *)
+    (*              (parseRequest' "GET /hoge HTTP/1.1\r\nHost: example.com\r\nUser-Agent: \343\201\262\343/1.0\r\n\r\n")), *)
+    ("parse multiline",
+     fn () => assertRequestParsed
+                  ("GET", "/", 0, [("foo", ""), ("foo", "b  \tc")])
+                  (parseRequest' "GET / HTTP/1.0\r\nfoo: \r\nfoo: b\r\n  \tc\r\n\r\n")),
+    ("http header name with trailing space",
+     fn () => assertRequestParsed
+                  ("GET", "/", 0, [("foo ", "ab")])
+                  (parseRequest' "GET / HTTP/1.0\r\nfoo : ab\r\n\r\n")),
+    ("incomplete 1",
+     fn () => assertIncomplete (fn () => parseRequest' "GET")),
+    ("incomplete 2",
+     fn () => assertIncomplete (fn () => parseRequest' "GET ")),
+    ("incomplete 3",
+     fn () => assertIncomplete (fn () => parseRequest' "GET /")),
+    ("incomplete 4",
+     fn () => assertIncomplete (fn () => parseRequest' "GET / ")),
+    ("incomplete 5",
+     fn () => assertIncomplete (fn () => parseRequest' "GET / H")),
+    ("incomplete 6",
+     fn () => assertIncomplete (fn () => parseRequest' "GET / HTTP/1.")),
+    ("incomplete 7",
+     fn () => assertIncomplete (fn () => parseRequest' "GET / HTTP/1.0")),
+    ("incomplete 8",
+     fn () => assertIncomplete (fn () => parseRequest' "GET / HTTP/1.0\r")),
+    ("slowloris (incomplete)",
+     fn () => assertIncomplete (fn () => parseRequest' "GET /hoge HTTP/1.0\r\n\r")),
+    ("slowloris (complete)",
+     fn () => assertRequestParsed
+                  ("GET", "/hoge", 0, [])
+                  (parseRequest' "GET /hoge HTTP/1.0\r\n\r\n")),
+    ("empty header name",
+     fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\n:a\r\n\r\n")),
+    ("header name (space only)",
+     fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\n :a\r\n\r\n")),
+    ("NUL in method",
+     fn () => assertParseError (fn () => parseRequest' "G\000T / HTTP/1.0\r\n\r\n")),
+    ("tab in method",
+     fn () => assertParseError (fn () => parseRequest' "G\tT / HTTP/1.0\r\n\r\n")),
+    ("DEL in uri-path",
+     fn () => assertParseError (fn () => parseRequest' "GET /\127hello HTTP/1.0\r\n\r\n")),
+    ("NUL in header name",
+     fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\na\000b: c\r\n\r\n")),
+    ("NUL in header value",
+     fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\nab: c\000d\r\n\r\n")),
+    ("CTL in header name",
+     fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\na\027b: c\r\n\r\n")),
+    ("CTL in header value",
+     fn () => assertParseError (fn () => parseRequest' "GET / HTTP/1.0\r\nab: c\027\r\n\r\n")),
+    ("accept MSB chars",
+     fn () => assertRequestParsed
+                  ("GET", "/\160", 0, [("h", "c\162y")])
+                  (parseRequest' "GET /\160 HTTP/1.0\r\nh: c\162y\r\n\r\n"))
+]
+
+val responseTests = [
+    ("simple",
+     fn () => assertResponseParsed
+                  (0, 200, "OK", [])
+                  (parseResponse' "HTTP/1.0 200 OK\r\n\r\n")),
+    ("partial",
+     fn () => assertIncomplete (fn () =>(parseResponse' "HTTP/1.0 200 OK\r\n\r"))),
+    ("parse headers",
+     fn () => assertResponseParsed
+                  (1, 200, "OK", [("Host", "example.com"), ("Cookie", "")])
+                  (parseResponse'"HTTP/1.1 200 OK\r\nHost: example.com\r\nCookie: \r\n\r\n")),
+    ("parse multiline",
+     fn () => assertResponseParsed
+                  (0, 200, "OK", [("foo", ""), ("foo", "b  \tc")])
+                  (parseResponse'"HTTP/1.0 200 OK\r\nfoo: \r\nfoo: b\r\n  \tc\r\n\r\n")),
+    ("internal server error",
+     fn () => assertResponseParsed
+                  (0, 500, "Internal Server Error", [])
+                  (parseResponse'"HTTP/1.0 500 Internal Server Error\r\n\r\n")),
+    ("incomplete 1",
+     fn () => assertIncomplete (fn () => (parseResponse' "H"))),
+    ("incomplete 2",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1."))),
+    ("incomplete 3",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1"))),
+    ("incomplete 4",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 "))),
+    ("incomplete 5",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 2"))),
+    ("incomplete 6",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200"))),
+    ("incomplete 7",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 "))),
+    ("incomplete 8",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 O"))),
+    ("incomplete 9",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r"))),
+    ("incomplete 10",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r\n"))),
+    ("incomplete 11",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\n"))),
+    ("incomplete 11",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r\nA: 1\r"))),
+    ("incomplete 12",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.1 200 OK\r\nA: 1\r\n"))),
+    ("slowloris (incomplete)",
+     fn () => assertIncomplete (fn () => (parseResponse' "HTTP/1.0 200 OK\r\n\r"))),
+    ("slowloris (complete)",
+     fn () => assertResponseParsed
+                  (0, 200, "OK", [])
+                  (parseResponse' "HTTP/1.0 200 OK\r\n\r\n")),
+    ("invalid http version",
+     fn () => assertParseError (fn () => (parseResponse' "HTTP/1. 200 OK\r\n\r\n"))),
+    ("invalid http version 2",
+     fn () => assertParseError (fn () => (parseResponse' "HTTP/1.2z 200 OK\r\n\r\n"))),
+    ("no status code",
+     fn () => assertParseError (fn () => (parseResponse' "HTTP/1.1  OK\r\n\r\n")))
+]
+
+fun suite _ = Test.labelTests (requestTests @ responseTests)
 end
 
