@@ -12,9 +12,6 @@ exception MemoryFull
 val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callback))
                                                                       int -> headers
 
-val phr_header_at = _import "phr_header_at": __attribute__((no_callback))
-                                                          (headers, int, string ref, int ref, string ref, int ref) -> ()
-
 val phr_prepare_decoder = _import "phr_prepare_decoder": __attribute__((no_callback))
                                                                       () -> chunkedDecoder
 
@@ -64,21 +61,49 @@ fun prepareHeaders n =
       else (headers, n)
   end
 
+local
+in
+val fromUnitPtr = SMLSharp_Builtin.Pointer.fromUnitPtr
+val deref = SMLSharp_Builtin.Pointer.deref
+val toUnitPtr = SMLSharp_Builtin.Pointer.toUnitPtr
+val advance = Pointer.advance
+val importString = Pointer.importString
+val isNull = Pointer.isNull
 fun getHeader (headers, n) i =
-  let
-      val name = ref ""
-      val nameLen = ref 0
-      val value = ref ""
-      val valueLen = ref 0
-  in
-      if 0 <= i andalso i < n
-      then phr_header_at(headers, i,  name, nameLen, value, valueLen)
-      else raise Subscript
-    ;
-      if (!name) = ""
-      then (NONE, String.substring(!value, 0, !valueLen))
-      else (SOME(String.substring(!name, 0, !nameLen)), String.substring(!value, 0, !valueLen))
-  end
+      if 0<=i andalso i < n
+      then let
+          val header_ptr : char ptr ptr = fromUnitPtr(headers)
+          val header_ptr = advance(header_ptr, i * 2)
+          val header_ptr : int ptr =
+              fromUnitPtr(toUnitPtr(header_ptr))
+          val header_ptr = advance(header_ptr , i * 2)
+
+          val header_ptr : char ptr ptr =
+              fromUnitPtr(toUnitPtr(header_ptr))
+          val name = deref(header_ptr)
+          val header_ptr = advance(header_ptr, 1)
+
+          val header_ptr : int ptr =
+              fromUnitPtr(toUnitPtr(header_ptr))
+          val nameLen = deref(header_ptr)
+          val header_ptr = advance(header_ptr, 1)
+
+          val header_ptr : char ptr ptr =
+              fromUnitPtr(toUnitPtr(header_ptr))
+          val value = deref(header_ptr)
+          val header_ptr = advance(header_ptr, 1)
+
+          val header_ptr : int ptr =
+              fromUnitPtr(toUnitPtr(header_ptr))
+          val valueLen = deref(header_ptr)
+      in
+          if isNull name
+          then (NONE, String.substring(importString(value), 0, valueLen))
+          else (SOME(String.substring(importString(name), 0, nameLen)),
+                String.substring(importString(value), 0, valueLen))
+      end
+      else  raise Subscript
+end
 
 fun prepareDecoder () =
   let

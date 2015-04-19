@@ -8,21 +8,6 @@ struct phr_header
   return malloc(sizeof(struct phr_header) * n);
 }
 
-void
-phr_header_at(struct phr_header *headers, int i,
-          const char **name, int *name_len,
-          const char **value, int *value_len)
-{
-  struct phr_header header;
-
-  header = headers[i];
-  if(header.name)
-    *name = header.name;
-  *name_len = header.name_len;
-  *value = header.value;
-  *value_len = header.value_len;
-}
-
 struct phr_chunked_decoder
 *phr_prepare_decoder()
 {
