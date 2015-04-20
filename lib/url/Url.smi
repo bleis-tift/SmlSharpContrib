@@ -1,0 +1,6 @@
+_require "basis.smi"
+structure Url =
+struct
+val urlEncode: string -> string
+val urlDecode: string -> string
+end
