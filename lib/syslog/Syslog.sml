@@ -60,10 +60,11 @@ val LOCAL6   : facility = (0w22<<0w3) (* reserved for local use *)
 val LOCAL7   : facility = (0w23<<0w3) (* reserved for local use *)
 
 
-val openlog' = _import "openlog":  (string, word, word) -> ()
-val syslog' = _import "syslog" : (int, string) -> ()
+val c_openlog =  _import "openlog":  (string, word, word) -> ()
+val c_syslog = _import "syslog" : (int, string) -> ()
+val c_closelog =  _import "closelog": () -> ()
 
-fun openlog(ident, options , facility: facility) = openlog'(ident, optionsToWord options, facility)
-fun syslog(loglevel: loglevel, msg) = syslog'(loglevel, msg)
-val closelog = _import "closelog": () -> ()
+fun openlog ident options (facility: facility) = c_openlog(ident, optionsToWord options, facility)
+fun syslog (loglevel: loglevel) msg = c_syslog(loglevel, msg)
+fun closelog () = c_closelog()
 end

@@ -41,7 +41,7 @@ val LOCAL5   : facility
 val LOCAL6   : facility
 val LOCAL7   : facility
 
-val openlog: string * openflag list * facility -> unit
-val syslog: loglevel * string -> unit
+val openlog: string -> openflag list -> facility -> unit
+val syslog: loglevel -> string -> unit
 val closelog: unit -> unit
 end
