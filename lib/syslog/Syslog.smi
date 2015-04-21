@@ -1,0 +1,47 @@
+_require "basis.smi"
+structure Syslog =
+struct
+type loglevel(= int)
+val EMERG   : loglevel
+val ALERT   : loglevel
+val CRIT    : loglevel
+val ERR     : loglevel
+val WARNING : loglevel
+val NOTICE  : loglevel
+val INFO    : loglevel
+val DEBUG   : loglevel
+
+type openflag(= word)
+val PID    : openflag
+val CONS   : openflag
+val ODELAY : openflag
+val NDELAY : openflag
+val NOWAIT : openflag
+val PERROR : openflag
+
+type facility(= word)
+val KERN     : facility
+val USER     : facility
+val MAIL     : facility
+val DAEMON   : facility
+val AUTH     : facility
+val SYSLOG   : facility             
+val LPR      : facility
+val NEWS     : facility
+val UUCP     : facility
+val CRON     : facility
+val AUTHPRIV : facility
+val FTP      : facility
+val LOCAL0   : facility
+val LOCAL1   : facility
+val LOCAL2   : facility
+val LOCAL3   : facility
+val LOCAL4   : facility
+val LOCAL5   : facility
+val LOCAL6   : facility
+val LOCAL7   : facility
+
+val openlog: string -> openflag list -> facility -> unit
+val syslog: loglevel -> string -> unit
+val closelog: unit -> unit
+end
