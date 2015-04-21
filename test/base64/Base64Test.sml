@@ -3,6 +3,8 @@ struct
   open SMLUnit
   open Base64
 
+  fun stringToWord8Array str = Word8Array.tabulate(String.size(str), fn i => Byte.charToByte(String.sub(str, i)))
+
   fun assertEncoded expect str =
     Assert.assertEqualString  expect (encode(stringToWord8Array(str)))
   fun assertDecoded expect str =
