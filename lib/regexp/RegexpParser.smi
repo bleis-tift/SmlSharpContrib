@@ -1,0 +1,44 @@
+_require "basis.smi"
+_require "REGEXP_PARSER.sig"
+
+functor RegexpParser(X:sig
+                          structure C: sig
+                                   eqtype char
+                                   eqtype string
+                                   val ord: char -> int
+                                   val chr: int -> char
+                                   val minChar: char
+                                   val maxChar: char
+                                   val notContains: string -> char -> bool
+                               end
+                     structure S: sig
+                                   eqtype char
+                                   eqtype string
+                                   val toString: string -> String.string
+                                   val implode: char list -> string
+                                   val explode: string -> char list
+                               end
+                                   
+                     sharing type C.char = S.char
+                     sharing type C.string = S.string
+                     end
+                    ) = struct
+type string = X.S.string
+type char = X.S.char
+datatype ast
+  = Item of char
+  | LineStart
+  | LineEnd
+  | Or of ast list
+  | And of ast list
+  | Kleene of ast
+  | Group of int * ast
+  | Any
+       | Empty
+
+type t = ast * int
+exception Lex
+exception Parse
+val fromLiteral: Char.char -> char
+val re : string -> t
+end

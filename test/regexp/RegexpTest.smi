@@ -1,0 +1,9 @@
+_require "basis.smi"
+_require "smlunit-lib.smi"
+_require "regexp/Re.smi"
+
+
+structure RegexpTest =
+struct
+val suite : unit -> SMLUnit.Test.test
+end
