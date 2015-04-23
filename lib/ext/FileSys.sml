@@ -71,16 +71,16 @@ fun expandGrob path =
       val root = if isAbs then "/" else "./"
       fun loop (x::xs) path =
         let
-            val tokens = String.fields (fn c => c = #"*") x
-            val wantFile = xs = []
+            val tokens = String.fields (fn c => c = #"*") (OS.Path.concat(path, x))
+            val wantFile = false
             val filter = makeFilter tokens wantFile
-            val candicates = if wantFile
-                             then List.filter filter [path]
-                             else List.filter filter 
-                                              (List.map (fn e => OS.Path.concat(path, e))
-                                                        (listDir path))
+            fun toFullPath e = OS.Path.concat(path, OS.Path.mkCanonical e)
+            val candicates = List.filter filter (List.map toFullPath ([".", ".."] @ (listDir path)))
         in
-            List.foldl (fn(e,acc) => (loop xs e) @ acc) [] candicates
+            if wantFile
+            then candicates
+            else List.foldl (fn(e,acc) => (loop xs e) @ acc) []
+                            candicates
         end
         | loop [] path = [path]
   in
