@@ -88,6 +88,20 @@ fun expandGrob path =
   end
       
       
+fun ascends path =
+  let
+      val abpath = OS.Path.mkAbsolute {path = path, relativeTo = F.getDir()}
+      val can = OS.Path.mkCanonical abpath
+      val {arcs, vol, isAbs} = OS.Path.fromString can
+  in
+      #1 (List.foldl (fn (e, (acc, prev)) =>
+                     let
+                         val new = OS.Path.concat(prev, e)
+                     in
+                         (new :: acc, new)
+                     end) (["/"], "/") arcs)
+  end
+
 
 fun optionToStr (SOME s) = s
   | optionToStr NONE = ""
