@@ -4,6 +4,7 @@ structure FileSys =
 struct
 val cwd: unit -> string
 val listDir: string -> string list
+val expandGrob: string -> string list
 val mkTmpDir: string -> string
 val mkTmpFile: string -> string
 val openTmpFile: strinng -> TextIO.outstream * string
