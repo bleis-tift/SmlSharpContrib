@@ -4,5 +4,7 @@ structure Base64 =
 struct
 val encode: word8 array -> string
 val decode: string -> word8 array
+val encodeFromString: string -> string
+val decodeToString:   string -> string
 end
               

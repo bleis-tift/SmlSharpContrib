@@ -184,8 +184,16 @@ Base64EncoderFun(
     val toWord8 = Byte.charToByte
     end
 )
+structure StringDecoder =
+Base64DecoderFun(
+struct 
+open CharArray
+val fromWord8 = Byte.byteToChar
+end
+)
 
 val encode = Word8ArrayEncoder.encode
-val encodeString = StringEncoder.encode
+val encodeFromString = StringEncoder.encode
 val decode = Word8ArrayDecoder.decode
+val decodeToString = CharArray.vector o StringDecoder.decode
 end
