@@ -2,7 +2,7 @@ structure HttpParser =
 struct
 
 type headers = unit ptr
-type headerArray = (headers * int)
+type t = (headers * int)
 type chunkedDecoder = unit ptr
 type request = {method: string, path: string, minorVersion: int, headers: (string * string) list, parsedSize: int}
 type response = {minorVersion: int, status: int, message: string, headers: (string * string) list, parsedSize: int}
@@ -131,7 +131,7 @@ fun getHeaders headers n =
                      ([], NONE) (loop 0 []))
   end
       
-fun parseRequest (headerArray as (headers, n)) buf =
+fun parseRequest (t as (headers, n)) buf =
   let
       val bufLen = String.size(buf)
       val method = ref ""
@@ -154,7 +154,7 @@ fun parseRequest (headerArray as (headers, n)) buf =
               }
   end
 
-fun parseResponse (headerArray as (headers, n)) buf =
+fun parseResponse (t as (headers, n)) buf =
   let
       val bufLen = String.size(buf)
       val minorVersion = ref 0
@@ -171,12 +171,12 @@ fun parseResponse (headerArray as (headers, n)) buf =
                    minorVersion = !minorVersion,
                    status = !status,
                    message = String.substring(!msg, 0, !msgLen),
-                   headers = getHeaders headerArray (!numHeaders),
+                   headers = getHeaders t (!numHeaders),
                    parsedSize = x
                }
   end
 
-fun parseHeaders (headerArray as (headers, n)) buf =
+fun parseHeaders (t as (headers, n)) buf =
   let
       val bufLen = String.size(buf)
       val numHeaders = ref n
@@ -184,7 +184,7 @@ fun parseHeaders (headerArray as (headers, n)) buf =
       case phr_parse_headers(buf, bufLen, headers, numHeaders, 0) of
           ~1 => raise Parse
         | ~2 => NONE
-        | x  => SOME{headers = (getHeaders headerArray (!numHeaders)), parsedSize = x}
+        | x  => SOME{headers = (getHeaders t (!numHeaders)), parsedSize = x}
   end
 
 fun decodeChunked decoder buf start size =

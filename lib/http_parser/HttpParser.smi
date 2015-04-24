@@ -4,14 +4,14 @@ _require "ffi.smi"
 structure HttpParser =
 struct
 exception Parse
-type headerArray(=boxed)
+type t(=boxed)
 type chunkedDecoder = unit ptr
 type request = {method: string, path: string, minorVersion: int, headers: (string * string) list, parsedSize: int}
 type response = {minorVersion: int, status: int, message: string, headers: (string * string) list, parsedSize: int}
-val prepareHeaders: int -> headerArray
+val prepareHeaders: int -> t
 val prepareDecoder: unit -> chunkedDecoder
-val parseRequest: headerArray -> string -> request option
-val parseResponse: headerArray -> string -> response option
-val parseHeaders: headerArray -> string -> {headers: (string * string) list, parsedSize: int} option
+val parseRequest: t -> string -> request option
+val parseResponse: t -> string -> response option
+val parseHeaders: t -> string -> {headers: (string * string) list, parsedSize: int} option
 val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref ->  unit option
 end
