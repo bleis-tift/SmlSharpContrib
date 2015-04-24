@@ -14,4 +14,6 @@ val parseRequest: t -> string -> request option
 val parseResponse: t -> string -> response option
 val parseHeaders: t -> string -> {headers: (string * string) list, parsedSize: int} option
 val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref ->  unit option
+val finalizeHeaders: t -> unit
+val finalizeDecoder: chunkedDecoder -> unit
 end

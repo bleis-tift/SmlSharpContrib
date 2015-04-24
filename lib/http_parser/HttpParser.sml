@@ -15,6 +15,11 @@ val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callb
 val phr_prepare_decoder = _import "phr_prepare_decoder": __attribute__((no_callback))
                                                                       () -> chunkedDecoder
 
+val phr_finalize_headers = _import "free": __attribute__((no_callback))
+                                                        headers -> ()
+val phr_finalize_decoder = _import "free": __attribute__((no_callback))
+                                                        chunkedDecoder -> ()
+
 val phr_parse_request =
     _import "phr_parse_request":  __attribute__((no_callback))
                                                (
@@ -60,6 +65,8 @@ fun prepareHeaders n =
       then raise MemoryFull
       else (headers, n)
   end
+
+fun finalizeHeaders (header, i) = (phr_finalize_headers header; ())
 
 local
 in
@@ -113,6 +120,8 @@ fun prepareDecoder () =
       then raise MemoryFull
       else decoder
   end
+
+fun finalizeDecoder decoder = (phr_finalize_decoder decoder; ())
 
 fun getHeaders headers n =
   let
@@ -192,4 +201,6 @@ fun decodeChunked decoder buf start size =
       ~1 => raise Parse
     | ~2 => NONE
     | x  => SOME()
+
+
 end
