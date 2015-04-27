@@ -10,7 +10,8 @@ val suites = SMLUnit.Test.TestList [
   JsonDecoderTest.suite (),
   JsonEncoderTest.suite (),
   UrlTest.suite (),
-  HttpParserTest.suite ()
+  HttpParserTest.suite (),
+  Base64Test.suite ()
 ]
 
 val () =
