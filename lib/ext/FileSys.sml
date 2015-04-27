@@ -120,6 +120,7 @@ fun openTmpFile prefix =
   let val name = tmpName prefix
   in (TextIO.openOut(name), name) end
 
+
 fun fold f u dir =
   let
       val d = F.openDir dir;
@@ -174,6 +175,15 @@ fun filter' f dir =
   fold' (fn (entry, acc) => (if f entry
                              then entry :: acc
                              else acc)) [] dir
+
+val foldPreOrder = fold
+val foldPostOrder = fold'
+val walkPreorder = walk
+val walkPostorder = walk'
+val mapPreOrder = map
+val mapPostOrder = map'
+val filterPreOreder = filter
+val filterPostOrder = filter'
 
 fun rm_rf dir =
   (walk' dir (fn f =>
