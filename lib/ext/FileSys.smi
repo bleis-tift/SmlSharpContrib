@@ -1,4 +1,4 @@
-_require "basis.sml"
+_require "basis.smi"
 
 structure FileSys =
 struct
@@ -8,13 +8,13 @@ val expandGrob: string -> string list
 val ascends: string -> string list
 val mkTmpDir: string -> string
 val mkTmpFile: string -> string
-val openTmpFile: strinng -> TextIO.outstream * string
+val openTmpFile: string -> TextIO.outstream * string
 val fold: (string * 'b -> 'b) -> 'b -> string -> 'b
 val fold': (string * 'b -> 'b) -> 'b -> string -> 'b
 val walk: string -> (string -> unit) -> unit
 val walk': string -> (string -> unit) -> unit
 val map: (string -> 'a) -> string -> 'a list
 val map': (string -> 'a) -> string -> 'a list
-val filter: (string -> boolean) -> string -> string list
-val filter': (string -> boolean) -> string -> string list
+val filter: (string -> bool) -> string -> string list
+val filter': (string -> bool) -> string -> string list
 end
