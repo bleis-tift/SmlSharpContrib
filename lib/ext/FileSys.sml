@@ -1,7 +1,7 @@
 structure FileSys =
 struct
 structure F = OS.FileSys
-structure O = Posix.FileSys
+(* structure O = Posix.FileSys *)
 
 fun fileExists f =
   (if F.isDir f
@@ -112,9 +112,9 @@ fun mkTmpDir prefix =
   let val name = tmpName prefix
   in (F.mkDir(name); name) end
 
-fun mkTmpFile prefix =
-  let val name = tmpName prefix
-  in (O.creat(name, O.S.irwxu); name) end
+(* fun mkTmpFile prefix = *)
+(*   let val name = tmpName prefix *)
+(*   in (O.creat(name, O.S.irwxu); name) end *)
 
 fun openTmpFile prefix =
   let val name = tmpName prefix

@@ -6,9 +6,9 @@ val cwd: unit -> string
 val listDir: string -> string list
 val expandGrob: string -> string list
 val ascends: string -> string list
-val mkTmpDir: string -> string
-val mkTmpFile: string -> string
-val openTmpFile: string -> TextIO.outstream * string
+val mkTmpDir: string option -> string
+(* val mkTmpFile: string option -> string *)
+val openTmpFile: string option -> TextIO.outstream * string
 val fold: (string * 'b -> 'b) -> 'b -> string -> 'b
 val fold': (string * 'b -> 'b) -> 'b -> string -> 'b
 val walk: string -> (string -> unit) -> unit
