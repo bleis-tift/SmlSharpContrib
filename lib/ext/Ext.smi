@@ -1,0 +1,5 @@
+_require "impl/List.smi"
+
+structure Ext = struct
+  structure List = LIST_IMPL
+end

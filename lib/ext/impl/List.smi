@@ -1,0 +1,5 @@
+_require "basis.smi"
+
+structure LIST_IMPL = struct
+  val sortWith : ('a * 'a -> order) -> 'a list -> 'a list
+end
