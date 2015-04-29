@@ -48,7 +48,7 @@ fun isSubstringFrom substr str i =
       loop i
   end
 
-fun makeFilter tokens wantFile =
+fun makeFilter (token :: tokens) wantFile =
   (fn str =>
       let
           fun check [] _ = true
@@ -56,32 +56,31 @@ fun makeFilter tokens wantFile =
             | check (x::xs) i = case isSubstringFrom x str i of
                                     SOME i => check xs i
                                   | NONE => false
-          val (x::xs) = tokens
-          val i = String.size x
+          val i = String.size token
       in
           if wantFile
-          then not (F.isDir str) andalso (String.isPrefix x str) andalso (check xs i)
-          else (String.isPrefix x str) andalso (check xs i)
+          then not (F.isDir str) andalso (String.isPrefix token str) andalso (check tokens i)
+          else (String.isPrefix token str) andalso (check tokens i)
                                                    
       end
   )
+  | makeFilter [] wantFile = (fn str => false)
 
 fun expandGrob path =
   let
+      val cwd = F.getDir()
+      val path = P.mkCanonical(P.concat(cwd, path))
       val {arcs, vol, isAbs} = P.fromString path
       val root = if isAbs then "/" else "./"
-      fun loop (x::xs) path =
+      fun loop (x::xs) p =
         let
-            val tokens = String.fields (fn c => c = #"*") (P.concat(path, x))
-            val wantFile = false
+            val tokens = String.fields (fn c => c = #"*") (P.concat(p, x))
+            val wantFile = xs = [] andalso x = ""
             val filter = makeFilter tokens wantFile
-            fun toFullPath e = P.concat(path, P.mkCanonical e)
-            val candicates = List.filter filter (List.map toFullPath ([".", ".."] @ (listDir path)))
+            fun toFullPath e = P.concat(p, P.mkCanonical e)
+            val candicates = List.filter filter (List.map toFullPath ([".", ".."] @ (listDir p)))
         in
-            if wantFile
-            then candicates
-            else List.foldl (fn(e,acc) => (loop xs e) @ acc) []
-                            candicates
+            List.foldl (fn(e,acc) => (loop xs e) @ acc) [] candicates
         end
         | loop [] path = [path]
   in
