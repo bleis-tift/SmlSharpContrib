@@ -7,7 +7,7 @@ val fileExists: string -> bool
 val expandGrob: string -> string list
 val ascends: string -> string list
 val mkTmpDir: string option -> string
-(* val mkTmpFile: string option -> string *)
+val mkTmpFile: string option -> string
 val openTmpFile: string option -> TextIO.outstream * string
 val fold: (string * 'b -> 'b) -> 'b -> string -> 'b
 val fold': (string * 'b -> 'b) -> 'b -> string -> 'b
