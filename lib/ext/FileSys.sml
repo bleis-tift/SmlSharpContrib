@@ -113,9 +113,9 @@ fun mkTmpDir prefix =
   let val name = tmpName prefix
   in (F.mkDir(name); name) end
 
-(* fun mkTmpFile prefix = *)
-(*   let val name = tmpName prefix *)
-(*   in (O.creat(name, O.S.irwxu); name) end *)
+fun mkTmpFile prefix =
+  let val name = tmpName prefix
+  in (touch name; name) end
 
 fun openTmpFile prefix =
   let val name = tmpName prefix
