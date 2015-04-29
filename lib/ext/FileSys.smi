@@ -17,4 +17,5 @@ val map: (string -> 'a) -> string -> 'a list
 val map': (string -> 'a) -> string -> 'a list
 val filter: (string -> bool) -> string -> string list
 val filter': (string -> bool) -> string -> string list
+val touch: string -> unit
 end
