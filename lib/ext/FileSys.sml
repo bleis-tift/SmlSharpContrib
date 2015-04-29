@@ -1,6 +1,7 @@
 structure FileSys =
 struct
 structure F = OS.FileSys
+structure P = OS.Path
 (* structure O = Posix.FileSys *)
 
 fun fileExists f =
@@ -67,14 +68,14 @@ fun makeFilter tokens wantFile =
 
 fun expandGrob path =
   let
-      val {arcs, vol, isAbs} = OS.Path.fromString path
+      val {arcs, vol, isAbs} = P.fromString path
       val root = if isAbs then "/" else "./"
       fun loop (x::xs) path =
         let
-            val tokens = String.fields (fn c => c = #"*") (OS.Path.concat(path, x))
+            val tokens = String.fields (fn c => c = #"*") (P.concat(path, x))
             val wantFile = false
             val filter = makeFilter tokens wantFile
-            fun toFullPath e = OS.Path.concat(path, OS.Path.mkCanonical e)
+            fun toFullPath e = P.concat(path, P.mkCanonical e)
             val candicates = List.filter filter (List.map toFullPath ([".", ".."] @ (listDir path)))
         in
             if wantFile
@@ -90,13 +91,13 @@ fun expandGrob path =
       
 fun ascends path =
   let
-      val abpath = OS.Path.mkAbsolute {path = path, relativeTo = F.getDir()}
-      val can = OS.Path.mkCanonical abpath
-      val {arcs, vol, isAbs} = OS.Path.fromString can
+      val abpath = P.mkAbsolute {path = path, relativeTo = F.getDir()}
+      val can = P.mkCanonical abpath
+      val {arcs, vol, isAbs} = P.fromString can
   in
       #1 (List.foldl (fn (e, (acc, prev)) =>
                      let
-                         val new = OS.Path.concat(prev, e)
+                         val new = P.concat(prev, e)
                      in
                          (new :: acc, new)
                      end) (["/"], "/") arcs)
@@ -127,7 +128,7 @@ fun fold f u dir =
       fun loop res =
         case F.readDir d of
             SOME entry => let
-             val name = (OS.Path.concat(dir, entry))
+             val name = (P.concat(dir, entry))
          in
              if F.isDir name
              then loop(fold f res name)
@@ -144,7 +145,7 @@ fun fold' f u dir =
       fun loop res =
         case F.readDir d of
             SOME entry => let
-             val name = (OS.Path.concat(dir, entry))
+             val name = (P.concat(dir, entry))
          in
              if F.isDir name
              then loop(f(name, fold' f res name))
@@ -194,7 +195,7 @@ fun rm_rf dir =
 
 fun mkdir_p dir =
   let
-      val {arcs,  isAbs, vol} = OS.Path.fromString dir
+      val {arcs,  isAbs, vol} = P.fromString dir
       (* :TODO: treat windows *)
       val unit = if isAbs
                  then "/"
@@ -202,7 +203,7 @@ fun mkdir_p dir =
   in
       List.foldl (fn (entry, path) =>
                      let
-                         val p = OS.Path.concat(path, entry)
+                         val p = P.concat(path, entry)
                      in
                          if fileExists p
                          then p
