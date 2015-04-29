@@ -61,7 +61,6 @@ fun makeFilter (token :: tokens) wantFile =
           if wantFile
           then not (F.isDir str) andalso (String.isPrefix token str) andalso (check tokens i)
           else (String.isPrefix token str) andalso (check tokens i)
-                                                   
       end
   )
   | makeFilter [] wantFile = (fn str => false)
