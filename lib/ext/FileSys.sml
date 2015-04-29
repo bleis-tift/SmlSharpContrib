@@ -201,14 +201,15 @@ fun mkdir_p dir =
                  then "/"
                  else ""
   in
-      List.foldl (fn (entry, path) =>
+      (List.foldl (fn (entry, path) =>
                      let
                          val p = P.concat(path, entry)
                      in
                          if fileExists p
                          then p
                          else (F.mkDir p; p)
-                     end) unit arcs
+                     end) unit arcs);
+      ()
   end
 
 val cwd = F.getDir
