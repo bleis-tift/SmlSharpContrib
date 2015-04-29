@@ -2,8 +2,8 @@ _require "basis.smi"
 
 structure FileSys =
 struct
-val cwd: unit -> string
 val listDir: string -> string list
+val fileExists: string -> bool
 val expandGrob: string -> string list
 val ascends: string -> string list
 val mkTmpDir: string option -> string
