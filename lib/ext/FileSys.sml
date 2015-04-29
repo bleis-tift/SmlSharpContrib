@@ -103,8 +103,8 @@ fun ascends path =
   end
 
 
-fun optionToStr (SOME s) = s
-  | optionToStr NONE = ""
+fun optionToStr s = Option.getOpt(s, "")
+
 val touch =  TextIO.closeIn o TextIO.openIn
 
 fun tmpName prefix = (optionToStr prefix) ^ (F.tmpName())
