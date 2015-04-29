@@ -95,11 +95,11 @@ fun ascends path =
       val {arcs, vol, isAbs} = P.fromString can
   in
       #1 (List.foldl (fn (e, (acc, prev)) =>
-                     let
-                         val new = P.concat(prev, e)
-                     in
-                         (new :: acc, new)
-                     end) (["/"], "/") arcs)
+                         let
+                             val new = P.concat(prev, e)
+                         in
+                             (new :: acc, new)
+                         end) (["/"], "/") arcs)
   end
 
 
@@ -130,8 +130,11 @@ fun fold f u dir =
             SOME entry => let
              val name = (P.concat(dir, entry))
          in
-             if F.isDir name
-             then loop(fold f res name)
+             if entry = P.currentArc orelse
+                entry = P.parentArc
+             then loop(res)
+             else if F.isDir name
+             then f(name, loop(fold f res name))
              else loop(f(name, res))
          end
           | NONE => (F.closeDir d; res)
@@ -147,7 +150,10 @@ fun fold' f u dir =
             SOME entry => let
              val name = (P.concat(dir, entry))
          in
-             if F.isDir name
+             if entry = P.currentArc orelse
+                entry = P.parentArc
+             then loop(res)
+             else if F.isDir name
              then loop(f(name, fold' f res name))
              else loop(f(name, res))
          end
@@ -202,13 +208,13 @@ fun mkdir_p dir =
                  else ""
   in
       (List.foldl (fn (entry, path) =>
-                     let
-                         val p = P.concat(path, entry)
-                     in
-                         if fileExists p
-                         then p
-                         else (F.mkDir p; p)
-                     end) unit arcs);
+                      let
+                          val p = P.concat(path, entry)
+                      in
+                          if fileExists p
+                          then p
+                          else (F.mkDir p; p)
+                      end) unit arcs);
       ()
   end
 
