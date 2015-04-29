@@ -17,5 +17,13 @@ val map: (string -> 'a) -> string -> 'a list
 val map': (string -> 'a) -> string -> 'a list
 val filter: (string -> bool) -> string -> string list
 val filter': (string -> bool) -> string -> string list
+val cwd: unit -> string
+val cd: unit -> unit
+val ls: string -> string list
+val mv: string -> string -> unit
 val touch: string -> unit
+val rm: string -> unit
+val rm_rf: string -> unit
+val mkdir: string -> unit
+val mkdir_p: string -> unit
 end
