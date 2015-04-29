@@ -212,8 +212,10 @@ fun mkdir_p dir =
   end
 
 val cwd = F.getDir
+val cd = F.chDir
 val ls = listDir
-val mv = F.rename
+fun mv old new = F.rename{old = old, new = new}
 val rm = F.remove
 val mkdir = F.mkDir
+val rmdir = F.rmDir
 end
