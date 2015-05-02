@@ -51,10 +51,11 @@ fun isSubstringFrom substr str i =
 fun makeFilter (token :: tokens) wantFile =
   (fn str =>
       let
-          fun check [] _ = true
-            | check [x] _ = String.isSuffix x str
+          val len = String.size str
+          fun check [] i = i = len
+            | check [x] i = String.isSuffix x str andalso i + String.size(x) <= len
             | check (x::xs) i = case isSubstringFrom x str i of
-                                    SOME i => check xs i
+                                    SOME j => check xs j
                                   | NONE => false
           val i = String.size token
       in
