@@ -5,6 +5,16 @@ struct
   open Assert
   structure P = OS.Path
 
+  fun qsort cmp [] = []
+    | qsort cmp (x::xs) = 
+    let
+        val (less, great) = List.partition (fn y => cmp(y, x) = LESS) xs
+    in
+        List.concat [qsort cmp less, [x], qsort cmp great]
+    end
+
+  val strSort = qsort String.compare
+
   val previousDir = cwd ();
   val fileSysTestDir = "./test/ext"
   val testDir = (P.concat(fileSysTestDir, "test"))
@@ -41,7 +51,11 @@ preparing this directory tree
         ("listDir: absolute",
          fn () => assertEqualStringList ["/bin/sh"] (List.filter (String.isSuffix "sh") (listDir "/"))),
         ("listDir: relative",
-         fn () => assertEqualStringList ["test1", "test2", "test3"]  (listDir "./")),
+         fn () => assertEqualStringList ["dir1", "dir2", "dir3", "test1", "test2", "test3"]
+                                        (strSort (List.filter (fn x =>
+                                                                  x <> P.currentArc andalso
+                                                                  x <> P.parentArc) 
+                                                              (listDir "./")))),
         ("fileExists: existing file",
          fn () => assertTrue (fileExists "test1")),
         ("fileExists: non-existing file",
@@ -57,14 +71,14 @@ preparing this directory tree
         ("expandGrob: non-matching path",
          fn () => assertEqualStringList [] (expandGrob "./non-existing-file")),
         ("expandGrob: matching grob to file",
-         fn () => assertEqualStringList (List.map (fn p => (P.mkAbsolute{relativeTo = cwd(), path = p} )) ["test1", "test2", "test3"]) (expandGrob "./test*")),
+         fn () => assertEqualStringList (List.map (fn p => (P.mkAbsolute{relativeTo = cwd(), path = p} )) ["test1", "test2", "test3"]) (strSort (expandGrob "./test*"))),
         ("expandGrob: matching grob to dir",
-         fn () => assertEqualStringList (List.map (fn p => (P.mkAbsolute{relativeTo = cwd(), path = p} )) ["dir1", "dir2", "dir3"]) (expandGrob "./dir*")),
+         fn () => assertEqualStringList (List.map (fn p => (P.mkAbsolute{relativeTo = cwd(), path = p} )) ["dir1", "dir2", "dir3"]) (strSort (expandGrob "./dir*"))),
         ("expandGrob: matching grob file under grod dir",
          fn () => assertEqualStringList (List.map (fn p => (P.mkAbsolute{relativeTo = cwd(), path = p} )) ["dir1/test1", "dir1/test2", "dir1/test3",
                                                                                                            "dir2/test1", "dir2/test2", "dir2/test3",
                                                                                                            "dir3/test1", "dir3/test2", "dir3/test3"])
-                                        (expandGrob "./dir*/*")),
+                                        (strSort (expandGrob "./dir*/*"))),
         ("expandGrob: non-matching grob",
          fn () => assertEqualStringList [] (expandGrob "./non*-matching")),
         ("touch: a new file",
