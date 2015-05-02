@@ -49,7 +49,7 @@ preparing this directory tree
 
   fun suite _ = Test.labelTests [
         ("listDir: absolute",
-         fn () => assertEqualStringList ["/bin/sh"] (List.filter (String.isSuffix "sh") (listDir "/"))),
+         fn () => assertEqualStringList ["sh"] (List.filter (fn s => s =  "sh") (listDir "/bin"))),
         ("listDir: relative",
          fn () => assertEqualStringList ["dir1", "dir2", "dir3", "test1", "test2", "test3"]
                                         (strSort (List.filter (fn x =>
