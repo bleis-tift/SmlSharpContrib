@@ -77,7 +77,7 @@ fun expandGrob path =
             val wantFile = xs = [] andalso x = ""
             val filter = makeFilter tokens wantFile
             fun toFullPath e = P.concat(p, P.mkCanonical e)
-            val candicates = List.filter filter (List.map toFullPath ([".", ".."] @ (listDir p)))
+            val candicates = List.filter filter (List.map toFullPath ([P.currentArc, P.parentArc] @ (listDir p)))
         in
             List.foldl (fn(e,acc) => (loop xs e) @ acc) [] candicates
         end
