@@ -84,7 +84,70 @@ preparing this directory tree
         ("touch: a new file",
          fn () => (touch "test4"; assertTrue (fileExists "test4"))),
         ("touch: an existing file",
-         fn () => (touch "test4"; assertTrue (fileExists "test4")))
+         fn () => (touch "test4"; assertTrue (fileExists "test4"))),
+        ("ascends:",
+         fn () => assertEqualStringList ["/usr/local/bin", "/usr/local", "/usr", "/"] (ascends "/usr/local/bin")),
+        (* ("mkTmpDir:", *)
+        (*  fn () => ()), *)
+        (* ("mkTmpfile:", *)
+        (*  fn () => ()), *)
+        (* ("openTmpFile:", *)
+        (*  fn () => ()), *)
+        ("fold:",
+         fn () => assertEqualStringList ["./dir1", "./dir1/test1", "./dir1/test2", "./dir1/test3",
+                                         "./dir2", "./dir2/test1", "./dir2/test2", "./dir2/test3",
+                                         "./dir3", "./dir3/test1", "./dir3/test2", "./dir3/test3",
+                                         "./test1", "./test2", "./test3", "./test4"]
+                                        (strSort (fold (fn (x, acc) => x :: acc) [] "./"))),
+        ("fold':",
+         fn () => assertEqualStringList ["./dir1", "./dir1/test1", "./dir1/test2", "./dir1/test3",
+                                         "./dir2", "./dir2/test1", "./dir2/test2", "./dir2/test3",
+                                         "./dir3", "./dir3/test1", "./dir3/test2", "./dir3/test3",
+                                         "./test1", "./test2", "./test3", "./test4"]
+                                        (strSort (fold' (fn (x, acc) => x :: acc) [] "./"))),
+        ("map:",
+         fn () => assertEqualStringList ["dir1",  "dir2",  "dir3",
+                                         "test1", "test1", "test1",
+                                         "test1", "test2", "test2",
+                                         "test2", "test2", "test3",
+                                         "test3", "test3", "test3", "test4"]
+                                        (strSort (map P.file "./"))),
+        ("map':",
+         fn () => assertEqualStringList ["dir1",  "dir2",  "dir3",
+                                         "test1", "test1", "test1",
+                                         "test1", "test2", "test2",
+                                         "test2", "test2", "test3",
+                                         "test3", "test3", "test3", "test4"]
+                                        (strSort (map' P.file "./"))),
+        ("filter:",
+         fn () => assertEqualStringList ["./dir1", "./dir1/test1", "./dir2/test1", "./dir3/test1", "./test1"]
+                                        (strSort (filter (String.isSuffix "1") "./"))),
+        ("filter':",
+         fn () => assertEqualStringList ["./dir1", "./dir1/test1", "./dir2/test1", "./dir3/test1", "./test1"]
+                                        (strSort (filter' (String.isSuffix "1") "./"))),
+        ("mkdir:",
+         fn () => (assertFalse (fileExists "./dir4");
+                   mkdir "./dir4";
+                   assertTrue (fileExists "./dir4"))),
+        ("mkdir_p:",
+         fn () => (assertFalse (fileExists "./dir4/the/quick/brown/fox");
+                   mkdir_p "./dir4/the/quick/brown/fox";
+                   assertTrue (fileExists "./dir4/the/quick/brown/fox"))),
+        (* ("cwd:", *)
+        (*  fn () => assertTrue (OS.FileSys.getDir = cwd)), *)
+        (* ("cd:", *)
+        (*  fn () => assertTrue (OS.FileSys.chDir = cd)), *)
+        (* ("ls:", *)
+        (*  fn () => assertTrue (listDir = ls)), *)
+        ("mv:",
+         fn () => ()),
+        (* ("rm", *)
+        (*  fn () => assertTrue (OS.FileSys.remove = rm)), *)
+        ("rm_rf",
+         fn () => ()),
+        ("cleanup", fn () => ())
+            
+            
   ]
 end
 
