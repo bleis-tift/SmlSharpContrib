@@ -1,0 +1,83 @@
+_require "basis.smi"
+structure Show =
+struct
+type 'a show = 'a -> string
+val      showUnit:      unit   show
+val       showInt:       int   show
+val      showWord:      word   show
+val     showWord8:     word8   show
+val    showWord32: Word32.word show
+val      showReal:      real   show
+val      showChar:      char   show
+val    showString:    string   show
+val showSubstring: substring   show
+val      showBool:      bool   show
+
+val showException: exn show
+val showOrder: order show
+
+val showRef: 'a show -> 'a ref show
+val      showUnitRef: unit        ref show
+val       showIntRef: int         ref show
+val      showWordRef: word        ref show
+val     showWord8Ref: word8       ref show
+val    showWord32Ref: Word32.word ref show
+val      showRealRef: real        ref show
+val      showCharRef: char        ref show
+val    showStringRef: string      ref show
+val showSubstringRef: substring   ref show
+val      showBoolRef: bool        ref show
+
+val showOption: 'a show -> 'a option show
+val      showUnitOption: unit        option show
+val       showIntOption: int         option show
+val      showWordOption: word        option show
+val     showWord8Option: word8       option show
+val    showWord32Option: Word32.word option show
+val      showRealOption: real        option show
+val      showCharOption: char        option show
+val    showStringOption: string      option show
+val showSubstringOption: substring   option show
+val      showBoolOption: bool        option show
+
+val show2Tuple:  ('x1 show * 'x0 show) ->
+                 ('x1 * 'x0) show
+val show3Tuple:  ('x2 show * 'x1 show * 'x0 show) ->
+                 ('x2 *'x1 * 'x0) show
+val show4Tuple:  ('x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x3 * 'x2 *'x1 * 'x0) show
+val show5Tuple:  ('x4 show * 'x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x4 * 'x3 * 'x2 *'x1 * 'x0) show
+val show6Tuple:  ('x5 show * 'x4 show * 'x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x5 * 'x4 * 'x3 * 'x2 *'x1 * 'x0) show
+val show7Tuple:  ('x6 show * 'x5 show * 'x4 show * 'x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x6 * 'x5 * 'x4 * 'x3 * 'x2 *'x1 * 'x0) show
+val show8Tuple:  ('x7 show * 'x6 show * 'x5 show * 'x4 show * 'x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x7 * 'x6 * 'x5 * 'x4 * 'x3 * 'x2 *'x1 * 'x0) show
+val show9Tuple:  ('x8 show * 'x7 show * 'x6 show * 'x5 show * 'x4 show * 'x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x8 * 'x7 * 'x6 * 'x5 * 'x4 * 'x3 * 'x2 *'x1 * 'x0) show
+val show10Tuple: ('x9 show * 'x8 show * 'x7 show * 'x6 show * 'x5 show * 'x4 show * 'x3 show * 'x2 show * 'x1 show * 'x0 show) ->
+                 ('x9 * 'x8 * 'x7 * 'x6 * 'x5 * 'x4 * 'x3 * 'x2 *'x1 * 'x0) show
+
+val showVector: 'a show -> 'a vector show
+val      showWordVector: word      vector show
+val     showWord8Vector: word8     vector show
+val      showCharVector: char      vector show
+
+val showArray: 'a show -> 'a array show
+val      showWordArray: word      array show
+val     showWord8Array: word8     array show
+val      showCharArray: char      array show
+
+val showList: 'a show -> 'a list show
+val      showUnitList: unit        list show
+val       showIntList: int         list show
+val      showWordList: word        list show
+val     showWord8List: word8       list show
+val    showWord32List: Word32.word list show
+val      showRealList: real        list show
+val      showCharList: char        list show
+val    showStringList: string      list show
+val showSubstringList: substring   list show
+val      showBoolList: bool        list show
+end
