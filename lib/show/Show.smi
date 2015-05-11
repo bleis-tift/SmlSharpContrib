@@ -60,14 +60,28 @@ val show10Tuple: ('x9 show * 'x8 show * 'x7 show * 'x6 show * 'x5 show * 'x4 sho
                  ('x9 * 'x8 * 'x7 * 'x6 * 'x5 * 'x4 * 'x3 * 'x2 *'x1 * 'x0) show
 
 val showVector: 'a show -> 'a vector show
-val      showWordVector: word      vector show
-val     showWord8Vector: word8     vector show
-val      showCharVector: char      vector show
+val      showUnitVector: unit        vector show
+val       showIntVector: int         vector show
+val      showWordVector: word        vector show
+val     showWord8Vector: word8       vector show
+val    showWord32Vector: Word32.word vector show
+val      showRealVector: real        vector show
+val      showCharVector: char        vector show
+val    showStringVector: string      vector show
+val showSubstringVector: substring   vector show
+val      showBoolVector: bool        vector show
 
 val showArray: 'a show -> 'a array show
-val      showWordArray: word      array show
-val     showWord8Array: word8     array show
-val      showCharArray: char      array show
+val      showUnitArray: unit        array show
+val       showIntArray: int         array show
+val      showWordArray: word        array show
+val     showWord8Array: word8       array show
+val    showWord32Array: Word32.word array show
+val      showRealArray: real        array show
+val      showCharArray: char        array show
+val    showStringArray: string      array show
+val showSubstringArray: substring   array show
+val      showBoolArray: bool        array show
 
 val showList: 'a show -> 'a list show
 val      showUnitList: unit        list show
@@ -80,4 +94,18 @@ val      showCharList: char        list show
 val    showStringList: string      list show
 val showSubstringList: substring   list show
 val      showBoolList: bool        list show
+
+val show = case 'a in 'a -> string of
+                      unit => showUnit
+                    | int => showInt
+                    | word => showWord
+                    | word8 => showWord8
+                    | real => showReal
+                    | char => showChar
+                    | string => showString
+                    | substring => showSubstring
+                    | bool => showBool
+                    | exn => showException
+                    | order => showOrder
+
 end

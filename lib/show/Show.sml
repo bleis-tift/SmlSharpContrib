@@ -174,18 +174,32 @@ fun showVector show v = String.concat(
       (List.tl (Vector.foldr
                     (fn (x, acc) => ", " :: (show x) :: acc)
                     [">"] v)))
+val      showUnitVector = showVector showUnit
+val       showIntVector = showVector showInt
 val      showWordVector = showVector showWord
 val     showWord8Vector = showVector showWord8
+val    showWord32Vector = showVector showWord32
+val      showRealVector = showVector showReal
 val      showCharVector = showVector showChar
+val    showStringVector = showVector showString
+val showSubstringVector = showVector showSubstring
+val      showBoolVector = showVector showBool
 
 fun showArray show a = String.concat(
       "#<Array: " ::
       (List.tl (Array.foldr
                     (fn (x, acc) => ", " :: (show x) :: acc)
                     [">"] a)))
+val      showUnitArray = showArray showUnit
+val       showIntArray = showArray showInt
 val      showWordArray = showArray showWord
 val     showWord8Array = showArray showWord8
+val    showWord32Array = showArray showWord32
+val      showRealArray = showArray showReal
 val      showCharArray = showArray showChar
+val    showStringArray = showArray showString
+val showSubstringArray = showArray showSubstring
+val      showBoolArray = showArray showBool
 
 fun showList show a =  String.concat(
       "[" ::
@@ -202,4 +216,5 @@ val      showCharList = showList showChar
 val    showStringList = showList showString
 val showSubstringList = showList showSubstring
 val      showBoolList = showList showBool
+
 end
