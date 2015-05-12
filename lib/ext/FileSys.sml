@@ -198,6 +198,7 @@ fun rm_rf dir =
                  then F.rmDir f
                  else F.remove f);
    F.rmDir dir)
+  handle OS.SysErr _ => ()
 
 fun mkdir_p dir =
   let
