@@ -124,7 +124,7 @@ preparing this directory tree
                                         (strSort (filter (String.isSuffix "1") "./"))),
         ("filter':",
          fn () => assertEqualStringList ["./dir1", "./dir1/test1", "./dir2/test1", "./dir3/test1", "./test1"]
-                                        (strSort (filter' (String.isSuffix "1") "./"))),
+                                      (strSort (filter' (String.isSuffix "1") "./"))),
         ("mkdir:",
          fn () => (assertFalse (fileExists "./dir4");
                    mkdir "./dir4";
@@ -137,16 +137,22 @@ preparing this directory tree
         (*  fn () => assertTrue (OS.FileSys.getDir = cwd)), *)
         (* ("cd:", *)
         (*  fn () => assertTrue (OS.FileSys.chDir = cd)), *)
-        (* ("ls:", *)
-        (*  fn () => assertTrue (listDir = ls)), *)
+        ("ls:",
+         fn () => assertEqualStringList ["test1", "test2", "test3"] (strSort (ls "./dir3"))),
         ("mv:",
-         fn () => ()),
-        (* ("rm", *)
-        (*  fn () => assertTrue (OS.FileSys.remove = rm)), *)
+         fn () => (mv "dir4" "dir5"; assertTrue (fileExists "./dir5/the/quick/brown/fox"))),
+        ("rmdir",
+         fn () => (rmdir "./dir5/the/quick/brown/fox";
+                 assertFalse (fileExists "./dir5/the/quick/brown/fox"))),
+        ("rm",
+         fn () => (rm "./test3";
+                 assertFalse (fileExists "./test3"))),
         ("rm_rf",
-         fn () => ()),
-        ("cleanup", fn () => ())
-            
+         fn () => (rm_rf "./dir5";
+                 assertFalse (fileExists "./dir5/the/quick/brown");
+                 assertFalse (fileExists "./dir5/the/quick/");
+                 assertFalse (fileExists "./dir5/the/");
+                 assertFalse (fileExists "./dir5")))
             
   ]
 end
