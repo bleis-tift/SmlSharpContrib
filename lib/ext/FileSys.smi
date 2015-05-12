@@ -22,6 +22,7 @@ val cd: string -> unit
 val ls: string -> string list
 val mv: string -> string -> unit
 val touch: string -> unit
+val rmdir: string -> unit
 val rm: string -> unit
 val rm_rf: string -> unit
 val mkdir: string -> unit
