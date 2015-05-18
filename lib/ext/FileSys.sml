@@ -2,7 +2,6 @@ structure FileSys =
 struct
 structure F = OS.FileSys
 structure P = OS.Path
-(* structure O = Posix.FileSys *)
 
 fun fileExists f =
   (if F.isDir f
