@@ -44,23 +44,24 @@ fun isSubstringFrom substr str i =
       loop i
   end
 
-fun makeFilter (token :: tokens) wantFile =
-  (fn str =>
-      let
-          val len = String.size str
-          fun check [] i = i = len
-            | check [x] i = String.isSuffix x str andalso i + String.size(x) <= len
-            | check (x::xs) i = case isSubstringFrom x str i of
-                                    SOME j => check xs j
-                                  | NONE => false
-          val i = String.size token
-      in
-          if wantFile
-          then not (F.isDir str) andalso (String.isPrefix token str) andalso (check tokens i)
-          else (String.isPrefix token str) andalso (check tokens i)
-      end
-  )
-  | makeFilter [] wantFile = (fn str => false)
+fun makeFilter [] wantFile = (fn str => false)
+  | makeFilter (token :: tokens) wantFile =
+    (fn str =>
+        let
+            val len = String.size str
+            fun check [] i = i = len
+              | check [x] i = String.isSuffix x str andalso i + String.size(x) <= len
+              | check (x::xs) i = case isSubstringFrom x str i of
+                                      SOME j => check xs j
+                                    | NONE => false
+            val i = String.size token
+        in
+            if wantFile
+            then not (F.isDir str) andalso (String.isPrefix token str) andalso (check tokens i)
+            else (String.isPrefix token str) andalso (check tokens i)
+        end
+    )
+  
 
 fun expandGrob path =
   let
