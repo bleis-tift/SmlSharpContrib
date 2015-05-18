@@ -12,11 +12,11 @@ fun fileExists f =
 
 fun listDir s =
   let
-      val d = F.openDir s;
+      val d = F.openDir s
       fun loop acc =
         case F.readDir d of
             SOME s => loop (s :: acc)
-          | NONE => (F.closeDir d; acc)
+          | NONE => acc before F.closeDir d 
   in
       loop []
   end
@@ -107,11 +107,11 @@ fun tmpName prefix = (optionToStr prefix) ^ (F.tmpName())
 
 fun mkTmpDir prefix =
   let val name = tmpName prefix
-  in (F.mkDir(name); name) end
+  in name before F.mkDir(name)  end
 
 fun mkTmpFile prefix =
   let val name = tmpName prefix
-  in (touch name; name) end
+  in name before touch name end
 
 fun openTmpFile prefix =
   let val name = tmpName prefix
@@ -120,7 +120,7 @@ fun openTmpFile prefix =
 
 fun fold f u dir =
   let
-      val d = F.openDir dir;
+      val d = F.openDir dir
       fun loop res =
         case F.readDir d of
             SOME entry => let
@@ -133,14 +133,14 @@ fun fold f u dir =
              then f(name, loop(fold f res name))
              else loop(f(name, res))
          end
-          | NONE => (F.closeDir d; res)
+          | NONE => res before F.closeDir d
   in
       loop u
   end
 
 fun fold' f u dir =
   let
-      val d = F.openDir dir;
+      val d = F.openDir dir
       fun loop res =
         case F.readDir d of
             SOME entry => let
@@ -153,7 +153,7 @@ fun fold' f u dir =
              then loop(f(name, fold' f res name))
              else loop(f(name, res))
          end
-          | NONE => (F.closeDir d; res)
+          | NONE => res before F.closeDir d
   in
       loop u
   end
@@ -210,7 +210,7 @@ fun mkdir_p dir =
                       in
                           if fileExists p
                           then p
-                          else (F.mkDir p; p)
+                          else p before F.mkDir p
                       end) unit arcs);
       ()
   end
