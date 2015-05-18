@@ -22,27 +22,23 @@ fun listDir s =
       loop []
   end
 
-datatype result
-  = Some of int
-  | None
-  | End
-
 fun isSubstringFrom substr str i =
   let
+      datatype result = Success of int | Continue | End
       val strLen = String.size str
       val substrLen = String.size substr
       fun checkOne i j =
         if  j = substrLen
-        then Some i
+        then Success i
         else if i = strLen
         then End
         else if String.sub(str, i) = String.sub(substr, j)
         then checkOne (i+1) (j+1)
-        else None
+        else Continue
       fun loop i =
         case checkOne i 0 of
-            Some j => SOME j
-          | None => loop (i + 1)
+            Success j => SOME j
+          | Continue => loop (i + 1)
           | End => NONE
   in
       loop i
