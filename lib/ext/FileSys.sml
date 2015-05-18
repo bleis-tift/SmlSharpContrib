@@ -57,8 +57,8 @@ fun makeFilter [] wantFile = (fn str => false)
             val i = String.size token
         in
             if wantFile
-            then not (F.isDir str) andalso (String.isPrefix token str) andalso (check tokens i)
-            else (String.isPrefix token str) andalso (check tokens i)
+            then not (F.isDir str) andalso String.isPrefix token str andalso check tokens i
+            else String.isPrefix token str andalso check tokens i
         end
     )
   
