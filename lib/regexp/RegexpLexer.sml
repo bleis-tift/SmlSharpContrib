@@ -1,19 +1,19 @@
 functor RegexpLexer(X:sig
-                          structure C: sig
-                                   eqtype char
-                                   eqtype string
-                                   val ord: char -> int
-                                   val chr: int -> char
-                               end
-                     structure S: sig
-                                   eqtype char
-                                   eqtype string
-                                   val toString: string -> String.string
-                                   val explode: string -> char list
-                               end
-                     sharing type C.char = S.char
-                     sharing type C.string = S.string
-                     end) =
+                        structure C: sig
+                                      eqtype char
+                                      eqtype string
+                                      val ord: char -> int
+                                      val chr: int -> char
+                                  end
+                        structure S: sig
+                                      eqtype char
+                                      eqtype string
+                                      val toString: string -> String.string
+                                      val explode: string -> char list
+                                  end
+                        sharing type C.char = S.char
+                        sharing type C.string = S.string
+                    end) =
 struct
     open X
     type string = C.string

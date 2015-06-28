@@ -1,7 +1,7 @@
 functor Regexp(X: sig
                    structure S:  sig
                                  eqtype char
-                                        eqtype string
+                                 eqtype string
                                  val ^ : string * string -> string
                                  val implode: char list -> string
                                  val extract: string * int * int option -> string

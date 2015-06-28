@@ -4,19 +4,20 @@ _require "RegexpLexer.smi"
 _require "RegexpParser.smi"
 _require "RegexpInter.smi"
 _require "Regexp.smi"
+
 structure Re = struct
-type t (= boxed)
+    type t (= boxed)
 
-exception Lex
-exception Parse
+    exception Lex
+    exception Parse
 
-val re : string -> t
-val match : t * string * int ->  (int * int * ((int * int) array)) option
-val doesMatch : t * string * int -> bool
-val matchString : t * string * int -> (string * string array) option
-val matchStrings : t * string * int -> string list
-val split : t * string * int -> string list
-val replace : t * string * int * string-> string
-val replaceAll : t * string * int * string -> string
+    val re : string -> t
+    val match : t * string * int ->  (int * int * ((int * int) array)) option
+    val doesMatch : t * string * int -> bool
+    val matchString : t * string * int -> (string * string array) option
+    val matchStrings : t * string * int -> string list
+    val split : t * string * int -> string list
+    val replace : t * string * int * string-> string
+    val replaceAll : t * string * int * string -> string
 end
 

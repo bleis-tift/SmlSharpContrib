@@ -7,7 +7,7 @@ _require "RegexpLexer.smi"
 functor RegexpParser(X:sig
                          structure C: sig
                                        eqtype char
-                                              eqtype string
+                                       eqtype string
                                        val ord: char -> int
                                        val chr: int -> char
                                        val minChar: char
@@ -16,7 +16,7 @@ functor RegexpParser(X:sig
                                    end
                          structure S: sig
                                        eqtype char
-                                              eqtype string
+                                       eqtype string
                                        val toString: string -> String.string
                                        val implode: char list -> string
                                    end
@@ -36,7 +36,7 @@ functor RegexpParser(X:sig
                                    end
                          structure Lexer: sig
                                        eqtype char
-                                              eqtype string
+                                       eqtype string
                                        exception Lex
                                        datatype t
                                          = SOS

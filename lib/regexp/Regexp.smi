@@ -6,14 +6,14 @@ _require "REGEXP_MATCHER.sig"
 functor Regexp(X: sig
                    structure S: sig
                                  eqtype char
-                                        eqtype string
+                                 eqtype string
                                  val ^ : string * string -> string
                                  val implode: char list -> string
                                  val extract: string * int * int option -> string
                              end
                    structure Matcher: sig
                                  eqtype char
-                                        eqtype string
+                                 eqtype string
                                  type t
                                  val match: t * string * int -> (int * int * ((int * int) array)) option
                              end

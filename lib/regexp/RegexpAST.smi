@@ -4,7 +4,7 @@ _require "REGEXP_AST.sig"
 functor RegexpAST (X: sig
                        eqtype char
                        val chr: int -> char
-                  end) =
+                   end) =
 struct
     type char = X.char
     datatype t
@@ -17,5 +17,5 @@ struct
       | And of t list
       | Kleene of t
       | Group of int * t
-val fromLiteral: Char.char -> char
+    val fromLiteral: Char.char -> char
 end

@@ -1,7 +1,7 @@
 functor RegexpAST (X: sig
                        eqtype char
                        val chr: int -> char
-                  end) : REGEXP_AST =
+                   end) : REGEXP_AST =
 struct
     type char = X.char
     datatype t
@@ -14,5 +14,5 @@ struct
       | And of t list
       | Kleene of t
       | Group of int * t
-fun fromLiteral c = X.chr (ord c)
+    fun fromLiteral c = X.chr (ord c)
 end

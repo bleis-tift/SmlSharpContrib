@@ -1,12 +1,12 @@
 _require "basis.smi"
-         _require "REGEXP_AST.sig"
-         _require "RegexpAST.smi"
+_require "REGEXP_AST.sig"
+_require "RegexpAST.smi"
 
 
 functor RegexpInter(X: sig
                         structure S:  sig
                                       eqtype char
-                                             eqtype string
+                                      eqtype string
                                       val sub: string * int -> char
                                       val size: string -> int
                                   end
