@@ -1,53 +1,36 @@
 _require "basis.smi"
-         _require "REGEXP_PARSER.sig"
-         _require "RegexpParser.smi"
+_require "REGEXP_MATCHER.sig"
+
+
+
 functor Regexp(X: sig
                    structure S: sig
-                   eqtype char
-                   eqtype string
-                   val ^ : string * string -> string
-                   val sub: string * int -> char
-                   val size: string -> int
-                   val implode: char list -> string
-                   val substring: string * int * int -> string
-                   val extract: string * int * int option -> string
-                   end
-
-                   structure Parser: sig
-                   eqtype char
-                   eqtype string
-                   datatype ast
-                     = Item of char
-                     | LineStart
-                     | LineEnd
-                     | Or of ast list
-                     | And of ast list
-                     | Kleene of ast
-                     | Group of int * ast
-                     | Any
-                          | Empty
-
-                   type t = ast * int
-                   exception Lex
-                   exception Parse
-                   val fromLiteral: Char.char -> char
-                   val re : string -> t
-                   end
-                   sharing type S.char = Parser.char
-                   sharing type S.string = Parser.string
+                                 eqtype char
+                                        eqtype string
+                                 val ^ : string * string -> string
+                                 val sub: string * int -> char
+                                 val size: string -> int
+                                 val implode: char list -> string
+                                 val substring: string * int * int -> string
+                                 val extract: string * int * int option -> string
+                             end
+                   structure Matcher: sig
+                                 eqtype char
+                                        eqtype string
+                                 type t
+                                 val match: t * string * int -> (int * int * ((int * int) array)) option
+                             end
+                   sharing type S.string = Matcher.string
+                   sharing type S.char = Matcher.char
                end
               ) = struct
-type t = X.Parser.t
-type string = X.Parser.string
-exception Lex = X.Parser.Lex
-exception Parse = X.Parser.Parse
-val re : string -> t
-val match : t * string * int ->  (int * int * ((int * int) array)) option
-val matchString : t * string * int -> (string * string array) option
-val matchStrings : t * string * int -> string list
-val doesMatch : t * string * int -> bool
-val split : t * string * int -> string list
-val replace : t * string * int * string-> string
-val replaceAll : t * string * int * string -> string
+    type t = X.Matcher.t
+    val match : X.Matcher.t * X.Matcher.string * int ->  (int * int * ((int * int) array)) option
+    val doesMatch : X.Matcher.t * X.Matcher.string * int -> bool
+    val matchString : X.Matcher.t * X.Matcher.string * int -> (X.Matcher.string * X.Matcher.string array) option
+    val matchStrings : X.Matcher.t * X.Matcher.string * int -> X.Matcher.string list
+    val split : X.Matcher.t * X.Matcher.string * int -> X.Matcher.string list
+    val replace : X.Matcher.t * X.Matcher.string * int * X.Matcher.string-> X.Matcher.string
+    val replaceAll : X.Matcher.t * X.Matcher.string * int * X.Matcher.string -> X.Matcher.string
 end
 

@@ -1,44 +1,75 @@
 _require "basis.smi"
-_require "REGEXP_PARSER.sig"
+_require "REGEXP_LEXER.sig"
+_require "REGEXP_AST.sig"
+_require "RegexpAST.smi"
+_require "RegexpLexer.smi"
 
 functor RegexpParser(X:sig
-                          structure C: sig
-                                   eqtype char
-                                   eqtype string
-                                   val ord: char -> int
-                                   val chr: int -> char
-                                   val minChar: char
-                                   val maxChar: char
-                                   val notContains: string -> char -> bool
-                               end
-                     structure S: sig
-                                   eqtype char
-                                   eqtype string
-                                   val toString: string -> String.string
-                                   val implode: char list -> string
-                                   val explode: string -> char list
-                               end
-                                   
-                     sharing type C.char = S.char
-                     sharing type C.string = S.string
+                         structure C: sig
+                                       eqtype char
+                                              eqtype string
+                                       val ord: char -> int
+                                       val chr: int -> char
+                                       val minChar: char
+                                       val maxChar: char
+                                       val notContains: string -> char -> bool
+                                   end
+                         structure S: sig
+                                       eqtype char
+                                              eqtype string
+                                       val toString: string -> String.string
+                                       val implode: char list -> string
+                                       val explode: string -> char list
+                                   end
+                         structure AST: sig
+                                       eqtype char
+                                       datatype t
+                                         = Any
+                                         | Empty
+                                         | Item of char
+                                         | LineStart
+                                         | LineEnd
+                                         | Or of t list
+                                         | And of t list
+                                         | Kleene of t
+                                         | Group of int * t
+                                       val fromLiteral: Char.char -> char
+                                   end
+                         structure Lexer: sig
+                                       eqtype char
+                                              eqtype string
+                                       exception Lex
+                                       datatype t
+                                         = SOS
+                                         | Char of char
+                                         | Hat
+                                         | Dollar
+                                         | Dot
+                                         | Star
+                                         | Plus
+                                         | Bar
+                                         | Option
+                                         | LeftParen
+                                         | RightParen
+                                         | LeftBracket
+                                         | RightBrackt
+                                         | LeftBrace
+                                         | RightBrace
+                                         | Hyphen
+                                         | Bang
+                                         | Comma
+                                         | EOS
+                                       val lex: string -> t list
+                                       val toChar: t -> t
+                                   end
+                                              
+                         sharing type C.char = S.char = AST.char = Lexer.char
+                         sharing type C.string = S.string = Lexer.string
                      end
                     ) = struct
-type string = X.S.string
-type char = X.S.char
-datatype ast
-  = Item of char
-  | LineStart
-  | LineEnd
-  | Or of ast list
-  | And of ast list
-  | Kleene of ast
-  | Group of int * ast
-  | Any
-       | Empty
-
-type t = ast * int
-exception Lex
-exception Parse
-val fromLiteral: Char.char -> char
-val re : string -> t
+    type string = X.S.string
+    type char = X.S.char
+    type t = X.AST.t * int
+    exception Parse
+    val re : string -> t
 end

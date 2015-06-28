@@ -1,0 +1,39 @@
+_require "basis.smi"
+         _require "REGEXP_AST.sig"
+         _require "RegexpAST.smi"
+
+
+functor RegexpInter(X: sig
+                        structure S:  sig
+                                      eqtype char
+                                             eqtype string
+                                      val ^ : string * string -> string
+                                      val sub: string * int -> char
+                                      val size: string -> int
+                                      val implode: char list -> string
+                                      val substring: string * int * int -> string
+                                      val extract: string * int * int option -> string
+                                  end
+                        structure AST: sig
+                                      eqtype char
+                                      datatype t
+                                        = Any
+                                        | Empty
+                                        | Item of char
+                                        | LineStart
+                                        | LineEnd
+                                        | Or of t list
+                                        | And of t list
+                                        | Kleene of t
+                                        | Group of int * t
+                                      val fromLiteral: Char.char -> char
+                                  end
+                        sharing type S.char = AST.char
+                    end
+                   ) = struct
+    type t = X.AST.t * int
+    type char = X.S.char
+    type string = X.S.string
+    val match : t * string * int ->  (int * int * ((int * int) array)) option
+end
+

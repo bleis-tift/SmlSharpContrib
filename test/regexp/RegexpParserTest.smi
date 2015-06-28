@@ -1,5 +1,7 @@
 _require "basis.smi"
 _require "smlunit-lib.smi"
+_require "regexp/RegexpAST.smi"
+_require "regexp/RegexpLexer.smi"
 _require "regexp/RegexpParser.smi"
 
 structure RegexpParserTest =

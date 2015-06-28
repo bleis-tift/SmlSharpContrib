@@ -1,0 +1,21 @@
+_require "basis.smi"
+_require "REGEXP_AST.sig"
+
+functor RegexpAST (X: sig
+                       eqtype char
+                       val chr: int -> char
+                  end) =
+struct
+    type char = X.char
+    datatype t
+      = Any
+      | Empty
+      | Item of char
+      | LineStart
+      | LineEnd
+      | Or of t list
+      | And of t list
+      | Kleene of t
+      | Group of int * t
+val fromLiteral: Char.char -> char
+end

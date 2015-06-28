@@ -1,9 +1,15 @@
 structure RegexpParserTest =
 struct
-structure RP = RegexpParser(structure C = Char structure S = String)
+    structure Lexer = RegexpLexer(structure C = Char
+                                  structure S = String)
+    structure RP = RegexpParser(structure C = Char
+                                structure S = String
+                                structure AST = RegexpAST(Char)
+                                structure Lexer = Lexer)
 open SMLUnit
 open RP
 open Assert
+exception Lex = Lexer.Lex
 
 fun assertWork str =
   (re str; assert "function work" true)
