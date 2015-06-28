@@ -3,10 +3,7 @@ functor Regexp(X: sig
                                  eqtype char
                                         eqtype string
                                  val ^ : string * string -> string
-                                 val sub: string * int -> char
-                                 val size: string -> int
                                  val implode: char list -> string
-                                 val substring: string * int * int -> string
                                  val extract: string * int * int option -> string
                              end
                    structure Matcher : REGEXP_MATCHER
@@ -29,9 +26,9 @@ struct
       case match(r, str, i) of
           SOME(s, e, gs) => let
            val gs' = Array.array(Array.length gs, S.implode [])
-           val _ = Array.appi (fn(i, (s, e))=> Array.update(gs', i, S.substring(str, s, e - s))) gs
+           val _ = Array.appi (fn(i, (s, e))=> Array.update(gs', i, S.extract(str, s, SOME (e - s)))) gs
        in
-           SOME(S.substring(str, s, e - s), gs')
+           SOME(S.extract(str, s, SOME (e - s)), gs')
        end
         | NONE => NONE
 

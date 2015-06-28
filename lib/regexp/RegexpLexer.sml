@@ -4,15 +4,11 @@ functor RegexpLexer(X:sig
                                    eqtype string
                                    val ord: char -> int
                                    val chr: int -> char
-                                   val minChar: char
-                                   val maxChar: char
-                                   val notContains: string -> char -> bool
                                end
                      structure S: sig
                                    eqtype char
                                    eqtype string
                                    val toString: string -> String.string
-                                   val implode: char list -> string
                                    val explode: string -> char list
                                end
                      sharing type C.char = S.char

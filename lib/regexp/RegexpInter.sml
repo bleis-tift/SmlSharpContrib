@@ -2,12 +2,8 @@ functor RegexpInter(X: sig
                    structure S:  sig
                    eqtype char
                    eqtype string
-                   val ^ : string * string -> string
                    val sub: string * int -> char
                    val size: string -> int
-                   val implode: char list -> string
-                   val substring: string * int * int -> string
-                   val extract: string * int * int option -> string
                    end
                    structure AST: REGEXP_AST
                    sharing type S.char = AST.char
@@ -18,7 +14,6 @@ open X
 open AST
 type string = S.string
 type t = AST.t * int
-val op ^ = S.^
 datatype result
   = Success of int * int * ((int * int) array)
   | Continue

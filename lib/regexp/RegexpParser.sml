@@ -13,7 +13,6 @@ functor RegexpParser(X:sig
                                    eqtype string
                                    val toString: string -> String.string
                                    val implode: char list -> string
-                                   val explode: string -> char list
                                end
                      structure AST: REGEXP_AST
                      structure Lexer: REGEXP_LEXER
