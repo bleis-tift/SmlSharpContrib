@@ -3,17 +3,15 @@ _require "ffi.smi"
 
 structure HttpParser =
 struct
-exception Parse
-type t(=boxed)
-type chunkedDecoder = unit ptr
-type request = {method: string, path: string, minorVersion: int, headers: (string * string) list, parsedSize: int}
-type response = {minorVersion: int, status: int, message: string, headers: (string * string) list, parsedSize: int}
-val prepareHeaders: int -> t
-val prepareDecoder: unit -> chunkedDecoder
-val parseRequest: t -> string -> request option
-val parseResponse: t -> string -> response option
-val parseHeaders: t -> string -> {headers: (string * string) list, parsedSize: int} option
-val decodeChunked: chunkedDecoder -> CharArray.array -> int -> int ref ->  unit option
-val finalizeHeaders: t -> unit
-val finalizeDecoder: chunkedDecoder -> unit
+    exception Parse
+    type chunkedDecoder( = ptr)
+    type request = {method: Substring.substring, path: Substring.substring, minorVersion: int, headers: (Substring.substring * Substring.substring) list, parsedSize: int}
+    type response = {minorVersion: int, status: int, message: Substring.substring, headers: (Substring.substring * Substring.substring) list, parsedSize: int}
+    type headers = {headers: (Substring.substring * Substring.substring) list, parsedSize: int}
+    val parseRequestString: string -> request option
+    val parseResponseString: string -> response option
+    val parseHeadersString: string -> headers option
+    val withDecoder: (chunkedDecoder -> unit) -> unit
+    val decodeChunkedCharArray: chunkedDecoder -> CharArray.array -> int -> int ref -> int option
+
 end

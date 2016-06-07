@@ -1,206 +1,130 @@
 structure HttpParser =
 struct
 
-type headers = unit ptr
-type t = (headers * int)
+
 type chunkedDecoder = unit ptr
-type request = {method: string, path: string, minorVersion: int, headers: (string * string) list, parsedSize: int}
-type response = {minorVersion: int, status: int, message: string, headers: (string * string) list, parsedSize: int}
+type request = {method: Substring.substring, path: Substring.substring, minorVersion: int, headers: (Substring.substring * Substring.substring) list, parsedSize: int}
+type response = {minorVersion: int, status: int, message: Substring.substring, headers: (Substring.substring * Substring.substring) list, parsedSize: int}
+type headers = {headers: (Substring.substring * Substring.substring) list, parsedSize: int}
+
+
 exception Parse
-exception MemoryFull
 
-val phr_prepare_headers = _import "phr_prepare_headers": __attribute__((no_callback))
-                                                                      int -> headers
 
-val phr_prepare_decoder = _import "phr_prepare_decoder": __attribute__((no_callback))
-                                                                      () -> chunkedDecoder
+val c_parse_request = _import "http_parser_parse_request":
+                      (string, int,
+                       int ref, int ref,
+                       int ref, int ref,
+                       int ref, (int, int, int, int) -> ()) -> int
 
-val phr_finalize_headers = _import "free": __attribute__((no_callback))
-                                                        headers -> ()
-val phr_finalize_decoder = _import "free": __attribute__((no_callback))
-                                                        chunkedDecoder -> ()
+val c_parse_response = _import "http_parser_parse_response":
+                       (string, int,
+                        int ref, int ref,
+                        int ref, int ref,
+                        (int, int, int, int) -> ()) -> int
 
-val phr_parse_request =
-    _import "phr_parse_request":  __attribute__((no_callback))
-                                               (
-                                                 string, int,
-                                                 string ref, int ref,
-                                                 string ref, int ref,
-                                                 int ref,
-                                                 headers, int ref,
-                                                 int
-                                               ) -> int
+val c_parse_headers = _import "http_parser_parse_headers":
+                      (string, int,
+                       (int, int, int, int) -> ()) -> int
 
-val phr_parse_response =
-    _import "phr_parse_response": __attribute__((no_callback))
-                                               (
-                                                 string, int,
-                                                 int ref,
-                                                 int ref, string ref, int ref,
-                                                 headers, int ref,
-                                                 int
-                                               ) -> int
+val c_with_decoder = _import "http_parser_with_decoder": (chunkedDecoder -> ()) -> ()
+val c_decode_chunked = _import "http_parser_decode_chunked": (chunkedDecoder, char array, int , int ref) -> int
 
-val phr_parse_headers =
-    _import "phr_parse_headers": __attribute__((no_callback))
-                                              (
-                                                string, int,
-                                                headers, int ref,
-                                                int
-                                              ) -> int
+val subs = Substring.substring
 
-val phr_decode_chunked_aux =
-    _import "phr_decode_chunked_aux": __attribute__((no_callback))
-                                               (
-                                                 chunkedDecoder,
-                                                 CharArray.array, int,
-                                                 int ref
-                                               ) -> int
-
-fun prepareHeaders n =
-  let
-      val headers = phr_prepare_headers n
-  in
-      if headers = _NULL
-      then raise MemoryFull
-      else (headers, n)
-  end
-
-fun finalizeHeaders (header, i) = (phr_finalize_headers header; ())
-
-local
+fun parseRequestString str = let
+    val len = String.size(str)
+    val methodStart  = ref 0
+    val methodSize   = ref 0
+    val pathStart    = ref 0
+    val pathSize     = ref 0
+    val minorVersion = ref 0
+    val headers       = ref []
+    fun callback (n, nsz, v, vsz) =
+      if n = ~1
+      then case !headers of
+               (name, value)::tl =>
+               headers := (name, Substring.full((Substring.string value)
+                                                ^ (String.substring(str, v, vsz)))) :: tl
+            | _ => raise Fail "unreachable"
+      else headers := (subs(str, n, nsz), subs(str, v, vsz)) :: (!headers)
+    val ret = c_parse_request(str, len,
+                              methodStart, methodSize,
+                              pathStart, pathSize,
+                              minorVersion, callback)
 in
-val fromUnitPtr = SMLSharp_Builtin.Pointer.fromUnitPtr
-val deref = SMLSharp_Builtin.Pointer.deref
-val toUnitPtr = SMLSharp_Builtin.Pointer.toUnitPtr
-val advance = Pointer.advance
-val importString = Pointer.importString
-val isNull = Pointer.isNull
-fun getHeader (headers, n) i =
-      if 0<=i andalso i < n
-      then let
-          val header_ptr : char ptr ptr = fromUnitPtr(headers)
-          val header_ptr = advance(header_ptr, i * 2)
-          val header_ptr : int ptr =
-              fromUnitPtr(toUnitPtr(header_ptr))
-          val header_ptr = advance(header_ptr , i * 2)
-
-          val header_ptr : char ptr ptr =
-              fromUnitPtr(toUnitPtr(header_ptr))
-          val name = deref(header_ptr)
-          val header_ptr = advance(header_ptr, 1)
-
-          val header_ptr : int ptr =
-              fromUnitPtr(toUnitPtr(header_ptr))
-          val nameLen = deref(header_ptr)
-          val header_ptr = advance(header_ptr, 1)
-
-          val header_ptr : char ptr ptr =
-              fromUnitPtr(toUnitPtr(header_ptr))
-          val value = deref(header_ptr)
-          val header_ptr = advance(header_ptr, 1)
-
-          val header_ptr : int ptr =
-              fromUnitPtr(toUnitPtr(header_ptr))
-          val valueLen = deref(header_ptr)
-      in
-          if isNull name
-          then (NONE, String.substring(importString(value), 0, valueLen))
-          else (SOME(String.substring(importString(name), 0, nameLen)),
-                String.substring(importString(value), 0, valueLen))
-      end
-      else  raise Subscript
+    case ret of
+        ~1 => raise Parse
+      | ~2 => NONE
+      | parsedSize => SOME ({
+                               method       = subs(str, !methodStart, !methodSize),
+                               path         = subs(str, !pathStart,   !pathSize),
+                               minorVersion = !minorVersion,
+                               headers      = List.rev (!headers),
+                               parsedSize   = parsedSize
+                           })
 end
 
-fun prepareDecoder () =
-  let
-      val decoder = phr_prepare_decoder()
-  in
-      if decoder = _NULL
-      then raise MemoryFull
-      else decoder
-  end
+fun parseResponseString str = let
+    val len = String.size(str)
+    val minorVersion = ref 0
+    val status = ref 0
+    val msgStart  = ref 0
+    val msgSize   = ref 0
+    val headers       = ref []
+    fun callback (n, nsz, v, vsz) =
+      if n = ~1
+      then case !headers of
+               (name, value)::tl =>
+               headers := (name, Substring.full((Substring.string value)
+                                                ^ (String.substring(str, v, vsz)))) :: tl
+             | _ => raise Fail "unreachable"
+      else headers := (subs(str, n, nsz), subs(str, v, vsz)) :: (!headers)
+    val ret = c_parse_response(str, len, minorVersion, status,
+                               msgStart, msgSize, callback)
+in
+    case ret of
+        ~1 => raise Parse
+      | ~2 => NONE
+      | parsedSize => SOME ({
+                               message  = subs(str, !msgStart, !msgSize),
+                               status = !status,
+                               minorVersion = !minorVersion,
+                               headers      = List.rev (!headers),
+                               parsedSize   = parsedSize
+                           })
+end
 
-fun finalizeDecoder decoder = (phr_finalize_decoder decoder; ())
+fun parseHeadersString str = let
+    val len = String.size(str)
+    val headers       = ref []
+    fun callback (n, nsz, v, vsz) =
+      if n = ~1
+      then case !headers of
+               (name, value)::tl =>
+               headers := (name, Substring.full((Substring.string value)
+                                                ^ (String.substring(str, v, vsz)))) :: tl
+             | _ => raise Fail "unreachable"
+      else headers := (subs(str, n, nsz), subs(str, v, vsz)) :: (!headers)
+    val ret = c_parse_headers(str, len,  callback)
+in
+    case ret of
+        ~1 => raise Parse
+      | ~2 => NONE
+      | parsedSize => SOME ({
+                               headers      = List.rev (!headers),
+                               parsedSize   = parsedSize
+                           })
+end
 
-fun getHeaders headers n =
-  let
-      fun loop i acc =
-        if i = n
-        then acc
-        else loop (i + 1) ((getHeader headers i) :: acc)
 
-      fun maybeAppend str1 (SOME str2) = str1 ^ str2
-        | maybeAppend str1 (NONE) = str1
-  in
-      #1 (List.foldl (fn ((name, value), (acc, value_acc))=>
-                         case name of
-                             NONE => (acc, SOME(maybeAppend value value_acc))
-                           | SOME name' => ((name', maybeAppend value value_acc):: acc, NONE))
-                     ([], NONE) (loop 0 []))
-  end
-      
-fun parseRequest (t as (headers, n)) buf =
-  let
-      val bufLen = String.size(buf)
-      val method = ref ""
-      val methodLen = ref 0
-      val path = ref ""
-      val pathLen = ref 0
-      val minorVersion = ref 0
-      val numHeaders = ref n
-  in
-      case phr_parse_request(buf, bufLen, method, methodLen, path, pathLen,
-                             minorVersion, headers, numHeaders, 0) of
-          ~1 => raise Parse
-        | ~2 => NONE
-        | x => SOME{
-                  method = String.substring(!method, 0, !methodLen),
-                  path = String.substring(!path, 0, !pathLen),
-                  minorVersion = !minorVersion,
-                  headers = getHeaders (headers, n) (!numHeaders),
-                  parsedSize = x
-              }
-  end
+val withDecoder = c_with_decoder
 
-fun parseResponse (t as (headers, n)) buf =
-  let
-      val bufLen = String.size(buf)
-      val minorVersion = ref 0
-      val status = ref 0
-      val msg = ref ""
-      val msgLen = ref 0
-      val numHeaders = ref n
-  in
-      case phr_parse_response(buf, bufLen, minorVersion, status, msg, msgLen,
-                              headers, numHeaders, 0) of
-          ~1 => raise Parse
-        | ~2 => NONE
-        | x  => SOME{
-                   minorVersion = !minorVersion,
-                   status = !status,
-                   message = String.substring(!msg, 0, !msgLen),
-                   headers = getHeaders t (!numHeaders),
-                   parsedSize = x
-               }
-  end
-
-fun parseHeaders (t as (headers, n)) buf =
-  let
-      val bufLen = String.size(buf)
-      val numHeaders = ref n
-  in
-      case phr_parse_headers(buf, bufLen, headers, numHeaders, 0) of
-          ~1 => raise Parse
-        | ~2 => NONE
-        | x  => SOME{headers = (getHeaders t (!numHeaders)), parsedSize = x}
-  end
-
-fun decodeChunked decoder buf start size =
-  case phr_decode_chunked_aux(decoder, buf, start, size) of
+fun decodeChunkedCharArray decoder buf start size =
+  case c_decode_chunked(decoder, buf, start, size) of
       ~1 => raise Parse
     | ~2 => NONE
-    | x  => SOME()
+    | x  => SOME(x)
 
 
 end
