@@ -96,15 +96,14 @@ http_parser_parse_headers(const char *buf, size_t len,
 
 
 
-struct phr_chunked_decoder
-*http_parser_decoder()
-{
-  struct phr_chunked_decoder *decoder;
 
-  decoder =  malloc(sizeof(*decoder));
-  if(decoder)
-    memset(decoder, 0, sizeof(*decoder));
-  return decoder;
+void
+http_parser_with_decoder(void (callback)(struct phr_chunked_decoder*))
+{
+  struct phr_chunked_decoder decoder;
+
+  memset(&decoder, 0, sizeof(decoder));
+  callback(&decoder);
 }
 
 size_t

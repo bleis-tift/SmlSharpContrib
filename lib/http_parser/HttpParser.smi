@@ -11,7 +11,7 @@ struct
     val parseRequestString: string -> request option
     val parseResponseString: string -> response option
     val parseHeadersString: string -> headers option
-    val decoder: unit -> chunkedDecoder
+    val withDecoder: (chunkedDecoder -> unit) -> unit
     val decodeChunkedCharArray: chunkedDecoder -> CharArray.array -> int -> int ref -> int option
 
 end

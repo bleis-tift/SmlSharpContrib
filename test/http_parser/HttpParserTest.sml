@@ -204,18 +204,19 @@ val headersTest = [
 
 fun decodeAtOnce str =
   let
-      val decoder = decoder()
       val size = ref(String.size(str))
       val arr = CharArray.array(!size, #"\000");
+      val ret = ref ""
   in
       CharArray.copyVec {di = 0, dst = arr, src = str};
-      case decodeChunkedCharArray decoder arr 0 size of
-          NONE => str
-        | SOME _ => let
-            val vec = CharArray.vector arr
-        in
-            String.substring(vec, 0, !size)
-        end
+      withDecoder (fn decoder => case decodeChunkedCharArray decoder arr 0 size of
+                                     NONE => ret := str
+                                   | SOME _ => let
+                                       val vec = CharArray.vector arr
+                                   in
+                                       ret := String.substring(vec, 0, !size)
+                                   end);
+      !ret
   end
 
 val chunkedDecoderTest = [

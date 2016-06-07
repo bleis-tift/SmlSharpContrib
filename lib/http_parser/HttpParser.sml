@@ -27,7 +27,7 @@ val c_parse_headers = _import "http_parser_parse_headers":
                       (string, int,
                        (int, int, int, int) -> ()) -> int
 
-val c_decoder = _import "http_parser_decoder": () -> chunkedDecoder
+val c_with_decoder = _import "http_parser_with_decoder": (chunkedDecoder -> ()) -> ()
 val c_decode_chunked = _import "http_parser_decode_chunked": (chunkedDecoder, char array, int , int ref) -> int
 
 val subs = Substring.substring
@@ -118,7 +118,7 @@ in
 end
 
 
-val decoder = c_decoder
+val withDecoder = c_with_decoder
 
 fun decodeChunkedCharArray decoder buf start size =
   case c_decode_chunked(decoder, buf, start, size) of
