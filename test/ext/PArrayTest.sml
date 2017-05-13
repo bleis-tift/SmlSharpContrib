@@ -18,9 +18,9 @@ struct
       Assert.assertEqualInt 250 (PArray.sub (t3, 1));
       Assert.assertEqualInt 2 (PArray.sub (t3, 2));
       Assert.assertEqualInt 42 (PArray.sub (t3, 3));
-      Assert.assertEqualInt 1 (PArray.sub (t1, 1));
-      Assert.assertEqualInt 750 (PArray.sub (t1, 2));
-      Assert.assertEqualInt 3 (PArray.sub (t1, 3))
+      Assert.assertEqualInt 1 (PArray.sub (t4, 1));
+      Assert.assertEqualInt 750 (PArray.sub (t4, 2));
+      Assert.assertEqualInt 3 (PArray.sub (t4, 3))
     end
 
   fun mapiTest () =
